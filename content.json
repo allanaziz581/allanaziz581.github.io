@@ -5,66 +5,113 @@
       "key": "tesla",
       "category": "tesla",
       "title": "Tesla",
-      "subtitle": "Manufacturing controls engineering intern",
+      "subtitle": "Controls engineering intern",
       "when": "May to August 2026",
-      "where": "Austin, Texas",
-      "desc": "Summer 2026 on a manufacturing controls team in Austin: Siemens PLC and HMI work, and an AI platform that helps engineers debug equipment.",
+      "where": "Giga Texas, Austin",
+      "desc": "Summer 2026 on the controls team at Giga Texas: Siemens PLC and HMI software, a local AI and knowledge toolkit for controls work, and electrical root cause on production lines.",
       "role": [
         "controls engineering",
         "plc / hmi",
-        "ai platform",
-        "machine vision"
+        "ai tooling",
+        "root cause"
       ],
-      "summary": "A summer on a manufacturing controls team at Tesla in Austin. I split the time between the controls themselves (Siemens PLC and HMI software, interlocks, fail-safe behavior, commissioning and troubleshooting on the line) and the tools around them: an AI engineering platform, its evaluations and a dashboard that help engineers find and fix equipment problems. Production numbers and equipment specifics stay with Tesla.",
+      "summary": "A summer as a controls engineering intern at Giga Texas, in three parts: PLC and HMI software for production equipment, a local AI and knowledge toolkit that helps find faults faster, and electrical root-cause work on the line that starts from the drawings.",
       "highlights": [
         {
-          "title": "An AI platform for the controls team",
-          "text": "A Python and C++ platform that takes in the team's documentation, searches it by meaning, and keeps labeled debugging traces and graphs of how the systems connect. It supports code generation, fault classification, schematic tracing and incident diagnosis."
+          "group": "Software and controls",
+          "title": "PLC and HMI applications",
+          "text": "I developed and commissioned Siemens TIA Portal applications in SCL, ladder and function block diagram, on S7-1500 standard and fail-safe CPUs, including the HMI tag models and operator workflows for production equipment."
         },
         {
-          "title": "Testing the AI before it is trusted",
-          "text": "Versioned evaluations check generated code against how the equipment should behave and its safety constraints, and safety-critical changes go through human review. They caught wrong fault diagnoses and generated changes that left out required interlocks, and those results shaped the next revisions of the platform."
+          "group": "Software and controls",
+          "title": "Reusable interfaces",
+          "text": "Reusable PLC and HMI interfaces for dock-side indication, safety reintegration acknowledge paths, process interlocks and multi-axis debounce timing, each checked online with watch tables before handoff."
         },
         {
-          "title": "A dashboard for the line",
-          "text": "An AI-assisted dashboard that flags abnormal production trends and recurring process faults, and puts the metrics and equipment context beside each flag so engineers can look into possible safety issues."
+          "group": "Software and controls",
+          "title": "Badge and RFID sign-in",
+          "text": "Badge and RFID sign-in for production HMIs: normalizing credentials, handling the REST requests and responses, the SSO and tap-login paths, and fixing mismatched tags, scripts and endpoints."
         },
         {
-          "title": "PLC and HMI software",
-          "text": "I wrote and commissioned Siemens S7-1500 PLC and HMI software in TIA Portal, in SCL, ladder and function block diagram: process interlocks, operator workflows, fail-safe controls, multi-axis sequencing, debounce logic and torque control for equipment running in real time."
+          "group": "Software and controls",
+          "title": "Reading the old binaries",
+          "text": "I reverse-engineered legacy authentication helper binaries into readable control flow, mapped the identity chain against the Siemens project structure, and built a Control Center integration for this site without carrying over another plant's configuration."
         },
         {
-          "title": "One interface across the lines",
-          "text": "I designed and documented reusable PLC/HMI interfaces and integration specifications: where direct writes or a cyclic abstraction fit, how HMI and IPC network addresses map across several production lines, and a standard way to control the equipment."
+          "group": "Software and controls",
+          "title": "Interface specifications",
+          "text": "PLC-HMI interface specifications that separate direct writes from cyclic abstraction layers, and an inventory of plant HMI and IPC addresses used across several production lines."
         },
         {
-          "title": "Plant integrations",
-          "text": "I built and debugged the APIs and sign-in links between plant systems (REST services, single sign-on, RFID badge authentication and identity mapping), and reverse-engineered legacy binaries to trace failures that kept coming back across connected systems."
+          "group": "AI systems and knowledge tooling",
+          "title": "A local model behind human review",
+          "text": "A local inference workflow over a private controls corpus, for SCL and HMI authoring, fault classification and procedure routing. Nothing the model produced reached a PLC or a safety change without human review."
         },
         {
-          "title": "Machine-vision inspection",
-          "text": "I helped commission, calibrate and validate camera-based inspection systems in battery manufacturing, comparing production images against the CAD design and checking parts for defects."
+          "group": "AI systems and knowledge tooling",
+          "title": "A second brain for controls work",
+          "text": "A knowledge system in structured Markdown, with wikilinks, frontmatter metadata and an automatic graph rebuild that links assets, blocks, faults and procedures, so a question can follow several hops."
         },
         {
-          "title": "Finding the root cause",
-          "text": "When equipment went down I worked with electrical, mechanical, controls and network engineers to find out why, from PLCs, remote I/O, HMIs and industrial networks to safety circuits, power, sensors, cabling and cameras, using schematics, PLC diagnostic buffers, watch tables and live tests."
+          "group": "AI systems and knowledge tooling",
+          "title": "Skills written as contracts",
+          "text": "Agent skills as versioned Markdown contracts, each with preconditions, inputs, steps, acceptance checks and failure modes: tracing a schematic, proving out a watch table, auditing HMI tag paths and filing a post-incident report."
+        },
+        {
+          "group": "AI systems and knowledge tooling",
+          "title": "Tuned on real debug traces",
+          "text": "On labeled debug traces (software versus power or network faults, unscanned call trees, credential parse errors) I tuned the chunking, link density and skill wording until retrieval came back with the actual fix path."
+        },
+        {
+          "group": "AI systems and knowledge tooling",
+          "title": "Used on live incidents",
+          "text": "On production incidents the graph and skills led the next step from the schematic net to the diagnostics, the tag and the call tree, which cut the repeat time to isolate pendant recovery faults, intermittent dropouts and badge API faults."
+        },
+        {
+          "group": "AI systems and knowledge tooling",
+          "title": "Data stays local",
+          "text": "No plant data went into external training. The model and skills were limited to authoring, navigation and running runbooks."
+        },
+        {
+          "group": "Electrical, schematics and root cause",
+          "title": "Starting from the drawings",
+          "text": "I read electrical schematics and panel drawings to trace power distribution, industrial network segments and safety circuits, and checked the hardware against the drawing package rather than guessing from the software alone."
+        },
+        {
+          "group": "Electrical, schematics and root cause",
+          "title": "Test cells",
+          "text": "I wired and commissioned multi-device test cells (PLC, remote I/O, HMI, pendant dock and safety gate lock), separated power and data cabling faults from application logic, and wrote up how to tell them apart for the team."
+        },
+        {
+          "group": "Electrical, schematics and root cause",
+          "title": "Intermittent faults",
+          "text": "I led the isolation of intermittent faults on major production lines by lining up bench baselines, PLC diagnostic buffers and the cable, switch and power paths from the schematics, and turned down raising watchdogs or timeouts as the fix."
+        },
+        {
+          "group": "Electrical, schematics and root cause",
+          "title": "Pendants that recover",
+          "text": "I restored safety reintegration on the handheld operator pendants after a power loss, so they recovered from an HMI acknowledge without a full PLC download. The causes were acknowledge tags that weren't bound and post-safety logic left out of the cyclic call tree."
+        },
+        {
+          "group": "Electrical, schematics and root cause",
+          "title": "Torque, debounce and an interlock",
+          "text": "I fixed torque-limit selection so the at-speed limits latch after acceleration, put one HMI-adjustable debounce across several axes, and staged a cross-program process interlock that stays disabled until its setpoints pass safety validation."
         }
       ],
       "tools": [
         "Siemens TIA Portal",
-        "S7-1500",
+        "S7-1500 standard and fail-safe",
         "SCL / LAD / FBD",
         "HMI",
-        "Python",
-        "C++",
-        "LLMs and retrieval",
-        "Evaluations",
+        "Watch tables",
+        "RFID",
         "REST",
         "SSO",
-        "RFID",
-        "Machine vision",
-        "Industrial networks",
-        "Remote I/O"
+        "Local LLM inference",
+        "Markdown knowledge graph",
+        "Electrical schematics",
+        "Remote I/O",
+        "Industrial networks"
       ],
       "links": [],
       "poster": "tesla",

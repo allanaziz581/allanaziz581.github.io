@@ -19,7 +19,7 @@ const FIELDS = [
   ['where', 'where', 'text'],
   ['desc', 'short text (shown beside the screens)', 'area', 3],
   ['summary', 'summary (detail page)', 'area', 5],
-  ['highlights', 'more about it, one per line: heading | description', 'lines', 6],
+  ['highlights', 'more about it, one per line: heading | description (or section | heading | description)', 'lines', 6],
   ['tools', 'tools, comma separated', 'csv'],
   ['role', 'role, comma separated', 'csv'],
   ['links', 'links, one per line: label | https://...', 'links', 3],
@@ -28,7 +28,7 @@ const FIELDS = [
 ];
 
 function toText(type, v) {
-  if (type === 'lines') return (v || []).map((x) => (typeof x === 'string' ? x : `${x.title} | ${x.text}`)).join('\n');
+  if (type === 'lines') return (v || []).map((x) => (typeof x === 'string' ? x : [x.group, x.title, x.text].filter((y) => y !== undefined).join(' | '))).join('\n');
   if (type === 'csv') return (v || []).join(', ');
   if (type === 'links') return (v || []).map((l) => `${l.label} | ${l.href}`).join('\n');
   return v ?? '';
@@ -36,8 +36,9 @@ function toText(type, v) {
 function fromText(type, s) {
   if (type === 'lines') {
     return s.split('\n').map((x) => x.trim()).filter(Boolean).map((line) => {
-      const k = line.indexOf(' | ');
-      return k > 0 ? { title: line.slice(0, k).trim(), text: line.slice(k + 3).trim() } : line;
+      const parts = line.split(' | ').map((y) => y.trim());
+      if (parts.length >= 3) return { group: parts[0], title: parts[1], text: parts.slice(2).join(' | ') };
+      return parts.length === 2 ? { title: parts[0], text: parts[1] } : line;
     });
   }
   if (type === 'csv') return s.split(',').map((x) => x.trim()).filter(Boolean);
@@ -352,8 +353,17 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
     desc.textContent = p.desc || p.summary || '';
     summary.textContent = p.summary || '';
     sumBlock.hidden = !p.summary;
-    // each piece of work: a numbered heading and a sentence or two (plain text items get just the text)
-    list.replaceChildren(...(p.highlights || []).map((h, k) => {
+    // each piece of work: a numbered heading and a sentence or two (plain text items get just the text),
+    // under a section heading where the entry groups them; numbers start again in each section
+    const rows = [];
+    let group = null, k = 0;
+    for (const h of p.highlights || []) {
+      const g = typeof h === 'string' ? '' : h.group || '';
+      if (g && g !== group) {
+        rows.push(Object.assign(document.createElement('li'), { className: 'detail__group', textContent: g }));
+        k = 0;
+      }
+      group = g;
       const li = document.createElement('li');
       li.className = 'detail__item';
       if (typeof h !== 'string' && h.title) {
@@ -361,9 +371,11 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
         t.append(Object.assign(document.createElement('span'), { className: 'detail__item-n', textContent: pad(k) }), ` ${h.title}`);
         li.append(t);
       }
+      k++;
       li.append(Object.assign(document.createElement('p'), { textContent: typeof h === 'string' ? h : h.text }));
-      return li;
-    }));
+      rows.push(li);
+    }
+    list.replaceChildren(...rows);
     hlBlock.hidden = !(p.highlights || []).length;
     tools.replaceChildren(...(p.tools || []).map((h) => Object.assign(document.createElement('li'), { textContent: h })));
     toolBlock.hidden = !(p.tools || []).length;

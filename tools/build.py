@@ -35,8 +35,11 @@ class ContentError(ValueError):
 
 
 def hl_text(h):
-    """One highlight as a line of text: 'Heading: description', or the text itself."""
-    return f"{h['title']}: {h['text']}" if isinstance(h, dict) else h
+    """One highlight as a line of text: 'Section, heading: description', or the text itself."""
+    if not isinstance(h, dict):
+        return h
+    head = ", ".join(x for x in (h.get("group", ""), h.get("title", "")) if x)
+    return f"{head}: {h['text']}" if head else h["text"]
 
 
 def validate(data):
@@ -73,7 +76,8 @@ def validate(data):
             if not isinstance(v, list) or not all(isinstance(x, str) for x in v):
                 raise ContentError(f"{key}: '{f}' must be a list of text")
             q[f] = [x.strip() for x in v if x.strip()]
-        # "more about it": each piece of work is plain text, or a short heading with a description
+        # "more about it": each piece of work is plain text, or a short heading with a description,
+        # optionally under a section ("group")
         hl = p.get("highlights", [])
         if not isinstance(hl, list):
             raise ContentError(f"{key}: 'highlights' must be a list")
@@ -82,12 +86,15 @@ def validate(data):
             if isinstance(x, str):
                 if x.strip():
                     q["highlights"].append(x.strip())
-            elif isinstance(x, dict) and isinstance(x.get("title", ""), str) and isinstance(x.get("text", ""), str):
-                t, d = x.get("title", "").strip(), x.get("text", "").strip()
+            elif isinstance(x, dict) and all(isinstance(x.get(k, ""), str) for k in ("group", "title", "text")):
+                g, t, d = x.get("group", "").strip(), x.get("title", "").strip(), x.get("text", "").strip()
                 if d:
-                    q["highlights"].append({"title": t, "text": d} if t else d)
+                    item = {"title": t, "text": d} if t else {"title": "", "text": d}
+                    if g:
+                        item = {"group": g, **item}
+                    q["highlights"].append(item if (t or g) else d)
             else:
-                raise ContentError(f"{key}: each highlight is text or {{title, text}}")
+                raise ContentError(f"{key}: each highlight is text or {{group, title, text}}")
         links = p.get("links", [])
         if not isinstance(links, list):
             raise ContentError(f"{key}: links must be a list")

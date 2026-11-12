@@ -455,6 +455,12 @@ a, button, label, html.over-screen #gl { cursor: var(--cur-link); }
 .detail__sheet .detail__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px clamp(24px, 3vw, 52px); margin: 0; padding: 0; list-style: none; }
 .detail__sheet .detail__item { margin: 0; padding: 0; }
 .detail__sheet .detail__item::before { content: none; }
+.detail__sheet .detail__group {
+  grid-column: 1 / -1; margin: 18px 0 -8px; padding-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, .12);
+  font-family: var(--font-head); font-weight: 800; font-size: clamp(17px, 1.4vw, 22px); line-height: 1.1; letter-spacing: -.01em; text-transform: uppercase; color: var(--accent);
+}
+.detail__sheet .detail__group:first-child { margin-top: 0; }
+.detail__sheet .detail__group::before { content: none; }
 .detail__item-t { margin: 0 0 8px; font-family: var(--font-head); font-weight: 800; font-size: clamp(14px, 1.05vw, 16px); line-height: 1.2; letter-spacing: -.005em; text-transform: uppercase; color: #fff; }
 .detail__item-n { margin-right: 4px; font-family: var(--font-dot); font-weight: 800; color: var(--accent); }
 .detail__item p { margin: 0; color: rgba(238, 240, 240, .7); }

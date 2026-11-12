@@ -489,38 +489,48 @@
 
 <!-- project detail: opened by clicking the front screen (or #key/details) -->
 <section class="detail" id="detail" role="dialog" aria-modal="true" aria-labelledby="detail-title" hidden>
-  <div class="detail__inner">
-    <div class="detail__head">
-      <span><span class="detail__num">[01]</span> <span class="detail__cat"></span></span>
-      <button class="detail__close" type="button" data-detail-close>close - x</button>
+  <div class="detail__top">
+    <button class="detail__close" type="button" data-detail-close><span aria-hidden="true">&gt; </span>close<span aria-hidden="true"> &lt;</span></button>
+    <div class="detail__projnav">
+      <button type="button" data-detail-prev>&lt; prev</button>
+      <span><span class="detail__num">[01]</span> <span class="detail__cat"></span> <span class="detail__count"></span></span>
+      <button type="button" data-detail-next>next &gt;</button>
     </div>
-    <h2 class="detail__title" id="detail-title"></h2>
-    <p class="detail__sub"></p>
-    <p class="detail__meta"></p>
-    <div class="detail__view">
-      <div class="detail__media" data-block="media">
-        <div class="detail__stage"></div>
-        <div class="detail__scrub" hidden>
-          <input class="detail__range" type="range" min="0" max="1" step="1" value="0" aria-label="time">
-          <span class="detail__frame-label" aria-live="polite"></span>
-        </div>
-        <p class="detail__cap"></p>
-        <div class="detail__thumbs" role="tablist" aria-label="pictures"></div>
+    <p class="detail__hint" aria-hidden="true"><span class="detail__hint-wheel">scroll down to zoom back out, sideways for more pictures</span><span class="detail__hint-touch">swipe down to zoom back out</span></p>
+  </div>
+  <div class="detail__view">
+    <div class="detail__gallery" aria-roledescription="carousel" aria-label="pictures">
+      <div class="detail__track"></div>
+      <button class="detail__arrow detail__arrow--prev" type="button" aria-label="previous picture">&lt;</button>
+      <button class="detail__arrow detail__arrow--next" type="button" aria-label="next picture">&gt;</button>
+    </div>
+    <p class="detail__cap" aria-live="polite"></p>
+    <div class="detail__bar detail__scroll">
+      <div class="detail__col detail__col--project">
+        <h3 class="detail__k">project</h3>
+        <h2 class="detail__title" id="detail-title"></h2>
+        <p class="detail__sub"></p>
+        <p class="detail__meta"></p>
       </div>
+      <div class="detail__col detail__col--info">
+        <h3 class="detail__k">info</h3>
+        <p class="detail__desc"></p>
+        <button class="detail__more" type="button" aria-expanded="false" aria-controls="detail-sheet">&gt; more about it</button>
+      </div>
+      <div class="detail__col detail__col--role">
+        <h3 class="detail__k">role</h3>
+        <p class="detail__role"></p>
+        <div class="detail__links"></div>
+      </div>
+      <div class="detail__thumbs" role="tablist" aria-label="pictures"></div>
+    </div>
+    <div class="detail__sheet detail__scroll" id="detail-sheet" hidden>
       <p class="detail__summary"></p>
       <div data-block="highlights"><h3 class="detail__k">highlights</h3><ul class="detail__list"></ul></div>
       <div data-block="tools"><h3 class="detail__k">tools</h3><ul class="detail__tools"></ul></div>
-      <div data-block="role"><h3 class="detail__k">role</h3><p class="detail__role"></p></div>
-      <div class="detail__links"></div>
     </div>
-    <form class="detail__form" hidden onsubmit="return false"></form>
-    <div class="detail__nav">
-      <button type="button" data-detail-prev>&lt; prev</button>
-      <span class="detail__count"></span>
-      <button type="button" data-detail-next>next &gt;</button>
-    </div>
-    <p class="detail__hint" aria-hidden="true"><span class="detail__hint-wheel">scroll to zoom back out</span><span class="detail__hint-touch">swipe down to zoom back out</span></p>
   </div>
+  <form class="detail__form detail__scroll" hidden onsubmit="return false"></form>
 </section>
 
 <!-- editor bar: only shown with ?edit -->

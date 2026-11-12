@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { posterFor, tintFor } from './posters.js';
 
 const W = 5.3, H = 3.55, BEZEL = 0.2;
-const TEX_W = 1024, TEX_H = Math.round(1024 * (H - 2 * BEZEL) / (W - 2 * BEZEL));
+export const TEX_W = 1024, TEX_H = Math.round(1024 * (H - 2 * BEZEL) / (W - 2 * BEZEL)); // screen artwork size (also the detail view's poster slides)
 
 const screenVert = /* glsl */`
 uniform float uBulge;

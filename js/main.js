@@ -3,11 +3,11 @@
 import * as THREE from 'three';
 import { createPost } from './post.js';
 import { createHero } from './hero.js';
-import { createWork, SCREEN_ASPECT } from './work.js';
+import { createWork, SCREEN_ASPECT, TEX_W, TEX_H } from './work.js';
 import { createTunnel } from './tunnel.js';
 import { createSound } from './sound.js';
 import { loadContent } from './content.js';
-import { POSTERS, tintFor, DEFAULT_TINT } from './posters.js';
+import { POSTERS, posterFor, tintFor, DEFAULT_TINT } from './posters.js';
 import { createDetail } from './detail.js';
 
 const root = document.documentElement;
@@ -243,6 +243,7 @@ async function boot() {
   const detail = createDetail({
     content,
     posterKeys: Object.keys(POSTERS),
+    poster: { draw: posterFor, w: TEX_W, h: TEX_H },
     edit: EDIT,
     onOpen(i) {
       focusTarget = 1;
@@ -278,9 +279,9 @@ async function boot() {
   // The panel's own text scrolls first; a wheel at its end (or dragging the phone sheet down from
   // its top) pulls too.
   const PULL_CLOSE = 0.34;
-  const panel = $('.detail__inner');
-  let pull = 0, pullAt = 0, holdUntil = 0, panelScrolledAt = 0, touchY = null, touchInPanel = false;
-  panel.addEventListener('scroll', () => { panelScrolledAt = performance.now(); }, { passive: true });
+  const scroller = (t) => t?.closest?.('.detail__scroll') || null; // the bar, the "more" sheet, the editor form
+  let pull = 0, pullAt = 0, holdUntil = 0, panelScrolledAt = 0, touchY = null, touchX = null, touchPanel = null, touchSide = false;
+  $('#detail').addEventListener('scroll', () => { panelScrolledAt = performance.now(); }, { passive: true, capture: true });
   function pullBy(amount) {
     pull = Math.min(1, pull + amount);
     pullAt = performance.now();
@@ -296,16 +297,19 @@ async function boot() {
       if (now < holdUntil) { e.preventDefault(); holdUntil = now + 320; }
       return;
     }
-    const inPanel = !!e.target.closest?.('.detail__inner');
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // sideways: the gallery's slides (js/detail.js)
+    const panel = scroller(e.target);
     const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
-    if (inPanel && (canScroll(panel, dy) || now - panelScrolledAt < 250)) return;
+    if (panel && (canScroll(panel, dy) || now - panelScrolledAt < 250)) return;
     e.preventDefault();
     pullBy(Math.min(300, Math.abs(dy)) / 700);
   }, { passive: false });
   addEventListener('touchstart', (e) => {
     if (!detail.isOpen) return;
     touchY = e.touches[0].clientY;
-    touchInPanel = !!e.target.closest?.('.detail__inner');
+    touchX = e.touches[0].clientX;
+    touchPanel = scroller(e.target);
+    touchSide = false;
   }, { passive: true });
   addEventListener('touchmove', (e) => {
     if (touchY == null) return;
@@ -314,9 +318,11 @@ async function boot() {
       if (performance.now() < holdUntil) { e.preventDefault(); holdUntil = performance.now() + 320; }
       return;
     }
-    const y = e.touches[0].clientY, dy = y - touchY;
-    touchY = y;
-    if (touchInPanel && !(dy > 0 && panel.scrollTop <= 0)) return;
+    const y = e.touches[0].clientY, x = e.touches[0].clientX, dy = y - touchY, dx = x - touchX;
+    // a sideways swipe belongs to the gallery (or a time slider), not to the pull
+    if (touchSide || Math.abs(dx) > Math.abs(dy)) { touchSide = true; return; }
+    touchY = y; touchX = x;
+    if (touchPanel && !(dy > 0 && touchPanel.scrollTop <= 0)) return;
     e.preventDefault();
     pullBy(Math.abs(dy) / (innerHeight * 0.55));
   }, { passive: false });

@@ -8,94 +8,94 @@
       "subtitle": "Controls engineering intern",
       "when": "May to August 2026",
       "where": "Giga Texas, Austin",
-      "desc": "Summer 2026 on the controls team at Giga Texas: Siemens PLC and HMI software, a local AI and knowledge toolkit for controls work, and electrical root cause on production lines.",
+      "desc": "Summer 2026 on the controls team at Giga Texas. I wrote Siemens PLC and HMI software, built a local AI and knowledge toolkit for controls work, and traced electrical faults on production lines to root cause.",
       "role": [
         "controls engineering",
         "plc / hmi",
         "ai tooling",
         "root cause"
       ],
-      "summary": "A summer as a controls engineering intern at Giga Texas, in three parts: PLC and HMI software for production equipment, a local AI and knowledge toolkit that helps find faults faster, and electrical root-cause work on the line that starts from the drawings.",
+      "summary": "A summer as a controls engineering intern at Giga Texas. I worked on PLC and HMI software for production equipment and on a local AI and knowledge toolkit that helps find faults faster. On the line, my electrical root-cause work started from the drawings.",
       "highlights": [
         {
           "group": "Software and controls",
           "title": "PLC and HMI applications",
-          "text": "I developed and commissioned Siemens TIA Portal applications in SCL, ladder and function block diagram, on S7-1500 standard and fail-safe CPUs, including the HMI tag models and operator workflows for production equipment."
+          "text": "I developed and commissioned Siemens TIA Portal applications in SCL, ladder and function block diagram, on S7-1500 standard and fail-safe CPUs. That included the HMI tag models and operator workflows for production equipment."
         },
         {
           "group": "Software and controls",
           "title": "Reusable interfaces",
-          "text": "Reusable PLC and HMI interfaces for dock-side indication, safety reintegration acknowledge paths, process interlocks and multi-axis debounce timing, each checked online with watch tables before handoff."
+          "text": "I built reusable PLC and HMI interfaces for dock-side indication, safety reintegration acknowledge paths, process interlocks and multi-axis debounce timing. Each one was checked online with watch tables before I handed it off."
         },
         {
           "group": "Software and controls",
           "title": "Badge and RFID sign-in",
-          "text": "Badge and RFID sign-in for production HMIs: normalizing credentials, handling the REST requests and responses, the SSO and tap-login paths, and fixing mismatched tags, scripts and endpoints."
+          "text": "I worked on badge and RFID sign-in for the production HMIs: normalizing credentials, handling the REST requests and responses, covering the SSO and tap-login paths, and fixing tags, scripts and endpoints that didn't match."
         },
         {
           "group": "Software and controls",
           "title": "Reading the old binaries",
-          "text": "I reverse-engineered legacy authentication helper binaries into readable control flow, mapped the identity chain against the Siemens project structure, and built a Control Center integration for this site without carrying over another plant's configuration."
+          "text": "I reverse-engineered legacy authentication helper binaries into readable control flow and mapped the identity chain against the Siemens project structure. I also built a Control Center integration for this site without carrying over another plant's configuration."
         },
         {
           "group": "Software and controls",
           "title": "Interface specifications",
-          "text": "PLC-HMI interface specifications that separate direct writes from cyclic abstraction layers, and an inventory of plant HMI and IPC addresses used across several production lines."
+          "text": "I wrote PLC-HMI interface specifications that keep direct writes apart from cyclic abstraction layers, and put together an inventory of the plant's HMI and IPC addresses across several production lines."
         },
         {
           "group": "AI systems and knowledge tooling",
-          "title": "A local model behind human review",
-          "text": "A local inference workflow over a private controls corpus, for SCL and HMI authoring, fault classification and procedure routing. Nothing the model produced reached a PLC or a safety change without human review."
+          "title": "Local model with human review",
+          "text": "I set up a local inference workflow over a private controls corpus, for SCL and HMI authoring, fault classification and procedure routing. Nothing the model produced reached a PLC or a safety change without a person reviewing it first."
         },
         {
           "group": "AI systems and knowledge tooling",
           "title": "A second brain for controls work",
-          "text": "A knowledge system in structured Markdown, with wikilinks, frontmatter metadata and an automatic graph rebuild that links assets, blocks, faults and procedures, so a question can follow several hops."
+          "text": "The knowledge base was structured Markdown with wikilinks and frontmatter metadata. The graph rebuilt itself and linked assets, blocks, faults and procedures, so I could follow a question several links deep."
         },
         {
           "group": "AI systems and knowledge tooling",
           "title": "Skills written as contracts",
-          "text": "Agent skills as versioned Markdown contracts, each with preconditions, inputs, steps, acceptance checks and failure modes: tracing a schematic, proving out a watch table, auditing HMI tag paths and filing a post-incident report."
+          "text": "I wrote the agent skills as versioned Markdown contracts. Each one listed its preconditions, inputs, steps, acceptance checks and failure modes. They covered tracing a schematic, proving out a watch table, auditing HMI tag paths and filing a post-incident report."
         },
         {
           "group": "AI systems and knowledge tooling",
           "title": "Tuned on real debug traces",
-          "text": "On labeled debug traces (software versus power or network faults, unscanned call trees, credential parse errors) I tuned the chunking, link density and skill wording until retrieval came back with the actual fix path."
+          "text": "I ran my own tuning loop on labeled debug traces: software faults versus power or network faults, unscanned call trees, credential parse errors. I adjusted the chunking, link density and skill wording until retrieval came back with the actual fix path."
         },
         {
           "group": "AI systems and knowledge tooling",
           "title": "Used on live incidents",
-          "text": "On production incidents the graph and skills led the next step from the schematic net to the diagnostics, the tag and the call tree, which cut the repeat time to isolate pendant recovery faults, intermittent dropouts and badge API faults."
+          "text": "On production incidents, the graph and skills pointed to the next step, from the schematic net to the diagnostics, the tag and the call tree. That cut the time to isolate repeat pendant recovery faults, intermittent dropouts and badge API faults."
         },
         {
           "group": "AI systems and knowledge tooling",
           "title": "Data stays local",
-          "text": "No plant data went into external training. The model and skills were limited to authoring, navigation and running runbooks."
+          "text": "No plant data went into outside training. The model and skills were only used for authoring, navigation and running runbooks."
         },
         {
           "group": "Electrical, schematics and root cause",
           "title": "Starting from the drawings",
-          "text": "I read electrical schematics and panel drawings to trace power distribution, industrial network segments and safety circuits, and checked the hardware against the drawing package rather than guessing from the software alone."
+          "text": "I traced power distribution, industrial network segments and safety circuits through the electrical schematics and panel drawings, and checked the hardware against the drawing package instead of guessing from the software alone."
         },
         {
           "group": "Electrical, schematics and root cause",
           "title": "Test cells",
-          "text": "I wired and commissioned multi-device test cells (PLC, remote I/O, HMI, pendant dock and safety gate lock), separated power and data cabling faults from application logic, and wrote up how to tell them apart for the team."
+          "text": "I wired and commissioned multi-device test cells with a PLC, remote I/O, an HMI, a pendant dock and a safety gate lock. On those cells I separated power and data cabling faults from application logic, and wrote up for the team how to tell them apart."
         },
         {
           "group": "Electrical, schematics and root cause",
           "title": "Intermittent faults",
-          "text": "I led the isolation of intermittent faults on major production lines by lining up bench baselines, PLC diagnostic buffers and the cable, switch and power paths from the schematics, and turned down raising watchdogs or timeouts as the fix."
+          "text": "I led the isolation of intermittent faults on major production lines. I lined up bench baselines, PLC diagnostic buffers and the cable, switch and power paths from the schematics, and turned down raising watchdogs or timeouts as the fix."
         },
         {
           "group": "Electrical, schematics and root cause",
           "title": "Pendants that recover",
-          "text": "I restored safety reintegration on the handheld operator pendants after a power loss, so they recovered from an HMI acknowledge without a full PLC download. The causes were acknowledge tags that weren't bound and post-safety logic left out of the cyclic call tree."
+          "text": "I restored safety reintegration on the handheld operator pendants after a power loss, so an HMI acknowledge brings them back without a full PLC download. The causes were acknowledge tags that weren't bound and post-safety logic left out of the cyclic call tree."
         },
         {
           "group": "Electrical, schematics and root cause",
           "title": "Torque, debounce and an interlock",
-          "text": "I fixed torque-limit selection so the at-speed limits latch after acceleration, put one HMI-adjustable debounce across several axes, and staged a cross-program process interlock that stays disabled until its setpoints pass safety validation."
+          "text": "I fixed torque-limit selection so the at-speed limits latch after acceleration. I also put one HMI-adjustable debounce across several axes, and staged a cross-program process interlock that stays disabled until its setpoints pass safety validation."
         }
       ],
       "tools": [
@@ -124,29 +124,29 @@
       "subtitle": "Songwriter, producer and guitarist",
       "when": "Ongoing",
       "where": "College Station, Texas",
-      "desc": "Original songs, beats and orchestral sketches, written and produced in Logic Pro and Ableton. Music is the other half of how I build things.",
+      "desc": "Original songs, beats and orchestral sketches that I write and produce in Logic Pro and Ableton. It's the other half of what I do, next to the engineering.",
       "role": [
         "writing",
         "production",
         "guitar"
       ],
-      "summary": "I write and produce my own songs, beats and orchestral sketches, and I minor in music technology at Texas A&M. The habits carry over to the engineering: get a rough version down fast, listen hard, and fix whatever doesn't feel right.",
+      "summary": "I write and produce my own songs, beats and orchestral sketches, and I minor in music technology at Texas A&M. I work on engineering the same way I work on a track: get a rough version down fast, then listen hard and fix whatever doesn't feel right.",
       "highlights": [
         {
-          "title": "From the first idea to a mix",
-          "text": "I write, arrange and produce in Logic Pro and Ableton Live, taking a song from the first idea to a mixed track."
+          "title": "First idea to the mix",
+          "text": "I write, arrange and produce in Logic Pro and Ableton Live, taking a song from the first idea to the mix."
         },
         {
           "title": "Orchestral sketches",
-          "text": "Strings, brass and winds come from Spitfire's BBC Symphony Orchestra, which I use for orchestral sketches and mockups."
+          "text": "For orchestral sketches and mockups I use Spitfire's BBC Symphony Orchestra, which covers the strings, brass and winds."
         },
         {
           "title": "Guitar first",
-          "text": "Most of my songs start on guitar. For playing parts live I use MainStage."
+          "text": "Most of my songs start on guitar. When I play parts live, I use MainStage."
         },
         {
           "title": "My own effects rig",
-          "text": "I built my own DSP effects rig for guitar; it has its own page with the engineering projects."
+          "text": "I also built a DSP effects rig for my guitar. It has its own page with the engineering projects."
         },
         {
           "title": "Music technology",
@@ -199,32 +199,32 @@
       "subtitle": "Object detection and AI optimization",
       "when": "2026",
       "where": "Personal project",
-      "desc": "A computer-vision workbench I built: put in an ordinary 2D video and it finds the objects, tracks them and rebuilds the scene in 4D, which is x, y and z plus time.",
-      "summary": "A plain 2D video goes in. Object detection finds the subject in every frame, depth models and camera solving lift each frame into 3D, and the frames are joined into one scene you can orbit and scrub through time. Earlier positions stay in the scene as ghosts, so a deer's whole path through the woods shows at once. The demo below comes out of my own pipeline from a single clip, with no 3D scanner and no extra cameras.",
+      "desc": "A computer-vision workbench I built. Give it an ordinary 2D video and it finds the objects, tracks them, and rebuilds the scene in 4D: x, y and z, plus time.",
+      "summary": "A plain 2D video goes in. Object detection finds the subject in every frame, depth models and camera solving lift each frame into 3D, and the frames join up into one scene you can orbit and scrub through time. Earlier positions stay behind as ghosts, so you see the deer's whole path through the woods at once. The demo on this page came out of my own pipeline from a single clip. No 3D scanner, no extra cameras.",
       "highlights": [
         {
           "title": "Space and time from one video",
-          "text": "One ordinary video is enough: the camera's path is solved, the subject is tracked frame by frame, and the whole scene is placed in x, y, z and time."
+          "text": "One ordinary video is enough. The pipeline solves the camera's path, tracks the subject frame by frame and places the whole scene in x, y, z and time."
         },
         {
           "title": "Detection, measured",
-          "text": "On a 1,000-image hold-out set, RF-DETR large finds people at 0.878 AP@0.50 in 35 ms a frame on an M5 Max, against 0.489 for the small model that runs on the device."
+          "text": "On a 1,000-image hold-out set, RF-DETR large finds people at 0.878 AP@0.50 in 35 ms a frame on an M5 Max. The small model that runs on the device gets 0.489."
         },
         {
           "title": "What the stock detectors miss",
-          "text": "For subjects such as a deer, open-vocabulary detection and segmentation (Grounding DINO and SAM) find them and cut them out."
+          "text": "Stock detectors miss subjects like a deer. For those, open-vocabulary detection and segmentation (Grounding DINO and SAM) find them and cut them out."
         },
         {
           "title": "The photoreal version",
-          "text": "Gaussian splats and per-frame 3D Gaussians, trained on the real frames and scored on frames held out from training."
+          "text": "There is also a photoreal version: Gaussian splats and per-frame 3D Gaussians, trained on the real frames and scored on frames held back from training."
         },
         {
-          "title": "No one in the loop",
+          "title": "Runs on its own",
           "text": "Drop a clip in a folder and the pipeline runs end to end and writes its own report."
         },
         {
           "title": "Its own app",
-          "text": "A native desktop app in Rust on wgpu: a 4D timeline, orbit, top-down and follow cameras, and manual correction of detections."
+          "text": "It has its own native desktop app, written in Rust on wgpu, with a 4D timeline, orbit, top-down and follow cameras, and a way to correct detections by hand."
         }
       ],
       "tools": [
@@ -347,7 +347,7 @@
         },
         {
           "title": "A sensor node",
-          "text": "I'm building a sensor node with a camera, radar and a distance sensor; its firmware logs every reading so tests can be replayed."
+          "text": "I'm building a sensor node with a camera, radar and a distance sensor. Its firmware logs every reading, so tests can be replayed."
         },
         {
           "title": "A Mac app for the vision work",
@@ -379,7 +379,7 @@
       "subtitle": "Founder and software engineer",
       "when": "April 2025 to February 2026",
       "where": "College Station, Texas",
-      "desc": "An AI platform I founded that turns financial news and public records into plain-English explanations, with every number checked against its source.",
+      "desc": "An AI platform I founded that turns financial news and public records into plain-English explanations, with the numbers checked against their sources.",
       "role": [
         "founder",
         "software",
@@ -389,15 +389,15 @@
       "highlights": [
         {
           "title": "The news pipeline",
-          "text": "News is collected, clustered by embeddings and summarized by a language model, with FAISS retrieval over economic reference texts; it's built to process over 1,000 articles a day."
+          "text": "News is collected, clustered by embeddings and summarized by a language model, with FAISS retrieval over economic reference texts. It's built to handle more than 1,000 articles a day."
         },
         {
           "title": "Following the money",
-          "text": "It links politicians, bills, lobbying, congressional trades and public spending, using SEC EDGAR, OpenFEC, USASpending, BLS, Census and other public sources."
+          "text": "It connects politicians, bills, lobbying, congressional trades and public spending, using SEC EDGAR, OpenFEC, USASpending, BLS, Census and other public sources."
         },
         {
           "title": "Checking the numbers",
-          "text": "Numbers in generated reports are checked against the source data, and a summary that fails the check is withheld."
+          "text": "Numbers in a generated report are checked against the source data. If a summary fails the check, it's held back."
         },
         {
           "title": "Website and app",
@@ -405,7 +405,7 @@
         },
         {
           "title": "My own security review",
-          "text": "In October 2026 I ran my own security review and logged every bug I found with the test that proves the fix."
+          "text": "In October 2026 I did my own security review. Every bug I found is logged with the test that proves it's fixed."
         }
       ],
       "tools": [
@@ -439,7 +439,7 @@
         "digital design",
         "ocaml"
       ],
-      "summary": "A small piece of digital hardware written in OCaml with Jane Street's Hardcaml. Turn a rotary encoder and a PWM output follows, sliding to the new duty cycle over a few periods instead of jumping there. Simulated and tested, with the Verilog generated; a learning project that hasn't been run on an FPGA board yet.",
+      "summary": "A small piece of digital hardware, written in OCaml with Jane Street's Hardcaml. Turn a rotary encoder and the PWM output follows, sliding to the new duty cycle over a few periods instead of jumping there. It's simulated and tested, and the Verilog is generated. It's still a learning project, though, and hasn't run on an FPGA board yet.",
       "highlights": [
         {
           "title": "A PWM that glides",
@@ -451,7 +451,7 @@
         },
         {
           "title": "Tested in simulation",
-          "text": "Every block has waveform tests in simulation, and the Verilog is generated from the OCaml."
+          "text": "Every block has waveform tests in simulation, and the Verilog comes straight out of the OCaml."
         }
       ],
       "tools": [
@@ -477,17 +477,17 @@
       "subtitle": "Effects hardware for guitar",
       "when": "",
       "where": "",
-      "desc": "A digital signal-processing effects system for guitar, breadboarded and tested. Where the bench and the music meet.",
+      "desc": "A digital signal-processing effects system for my guitar, built and tested on a breadboard.",
       "role": [
         "hardware",
         "dsp",
         "guitar"
       ],
-      "summary": "A digital signal-processing effects system for my own guitar. It started on a breadboard and was tested there, and it's the project where the engineering bench and the music meet.",
+      "summary": "A digital signal-processing effects system for my own guitar, so it's engineering and music in one project. It started on a breadboard, and I tested it there.",
       "highlights": [
         {
           "title": "On a breadboard",
-          "text": "I breadboarded the signal chain from the guitar input to the processed output."
+          "text": "I breadboarded the signal chain, from the guitar input to the processed output."
         },
         {
           "title": "Tested by ear",
@@ -515,7 +515,7 @@
         "level design",
         "unity"
       ],
-      "summary": "A virtual-reality game built by the Aggie Coding Club. I was one of its main contributors and built the world the player walks through: the maps, the cave level, and the environment, foliage and grass.",
+      "summary": "A virtual-reality game made by the Aggie Coding Club. I was one of its main contributors, and I built the world the player walks through: the maps, the cave level, and the environment, foliage and grass.",
       "highlights": [
         {
           "title": "Maps and the cave",
@@ -523,11 +523,11 @@
         },
         {
           "title": "The environment",
-          "text": "The environment art: assets, foliage and grass, and the scripts that place them."
+          "text": "I did the environment art: the assets, foliage and grass, and the scripts that place them."
         },
         {
           "title": "A club team",
-          "text": "We worked as a club team through Git."
+          "text": "It was a club project, and we worked together through Git."
         }
       ],
       "tools": [

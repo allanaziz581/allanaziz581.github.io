@@ -106,16 +106,23 @@ async function boot() {
 
   // ---------- sizing ----------
   const track = $('#scroll-track');
-  let vw = innerWidth, vh = innerHeight;
+  let vw = innerWidth, vh = innerHeight, gw = 0, gh = 0;
   let queueFrameWork = () => {}; // set once the work overlay is wired up (below)
   function resize(force) {
     const w = innerWidth, h = innerHeight;
-    // ignore small height changes from mobile browser bars
+    // the picture is drawn at the canvas's own size: the full screen with a phone browser's bars hidden
+    // (css #gl), which stays put when the bars come and go, so it never stretches
+    const cw = canvas.clientWidth || w, ch = canvas.clientHeight || h;
+    if (force || cw !== gw || ch !== gh) {
+      gw = cw; gh = ch;
+      renderer.setSize(cw, ch, false);
+      post.setSize(cw, ch, dpr);
+      scenes.forEach((s) => s.resize(cw, ch));
+      queueFrameWork();
+    }
+    // the scroll unit ignores small height changes from mobile browser bars
     if (!force && w === vw && Math.abs(h - vh) < 120) return;
     vw = w; vh = h;
-    renderer.setSize(w, h, false);
-    post.setSize(w, h, dpr);
-    scenes.forEach((s) => s.resize(w, h));
     queueFrameWork();
     track.style.height = `${Math.round((S.max + 1) * vh)}px`;
   }
@@ -131,6 +138,7 @@ async function boot() {
   let introStart = -1;
   let active = -1;
   let focusTarget = 0, focusCur = 0, glitchKick = 0;
+  let litWas = ''; // the work room's light, mirrored on its overlay as --lit (css: the list's bands)
   addEventListener('scroll', () => { sTarget = scrollY / vh; }, { passive: true });
 
   // ---------- overlays ----------
@@ -183,7 +191,7 @@ async function boot() {
   const workIndex = $('.work__index');
   const fitH = (a) => Math.max(0, Math.min((a.r - a.l) / SCREEN_ASPECT, a.b - a.t)); // screen height that fits
   function frameWork() {
-    const w = innerWidth, h = innerHeight;
+    const w = innerWidth, h = ov.work.clientHeight || innerHeight;
     const air = clamp(w * 0.025, 14, 36);
     const head = 62, foot = 40; // the name/menu row and the bottom row
     ov.work.classList.remove('is-stacked');
@@ -198,6 +206,8 @@ async function boot() {
     // keep the list on the left unless stacking buys a clearly bigger screen
     const useStacked = fitH(stacked) > 1.3 * fitH(side);
     ov.work.classList.toggle('is-stacked', useStacked);
+    ov.work.style.setProperty('--band-top', `${Math.round(li2.bottom)}px`);
+    ov.work.style.setProperty('--band-bottom', `${Math.round(h - (infBottom - tallest))}px`);
     fillInfo(Math.max(0, active));
     work.setArea(useStacked ? stacked : side, LOOK.work.barrel);
   }
@@ -223,6 +233,7 @@ async function boot() {
     root.style.setProperty('--main', t.main);
     root.style.setProperty('--pop', t.pop);
     root.style.setProperty('--accent', t.pop);
+    root.style.setProperty('--room', t.room);
     root.style.setProperty('--hi', lum(t.pop) > 0.12 ? t.pop : t.main);
   }
   function setActive(i) {
@@ -367,7 +378,7 @@ async function boot() {
     }
     // click on the front screen opens it
     if ((e.target === canvas || e.target === document.body || e.target === root) && workVisible() && active >= 0) {
-      const nx = (e.clientX / innerWidth) * 2 - 1, ny = -(e.clientY / innerHeight) * 2 + 1;
+      const nx = (e.clientX / gw) * 2 - 1, ny = -(e.clientY / gh) * 2 + 1;
       if (work.pick(nx, ny, active)) openDetail(active);
     }
   });
@@ -422,7 +433,7 @@ async function boot() {
   // ---------- pointer (the cursor itself is a CSS pixel arrow) ----------
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
   addEventListener('pointermove', (e) => {
-    const nx = (e.clientX / innerWidth) * 2 - 1, ny = -(e.clientY / innerHeight) * 2 + 1;
+    const nx = (e.clientX / gw) * 2 - 1, ny = -(e.clientY / gh) * 2 + 1;
     // a finger has no hover: touch would leave a permanent dent in the bust and tilt the scenes
     if (e.pointerType !== 'touch') scenes.forEach((s) => s.setPointer(nx, ny));
     if (!fine) return;
@@ -521,6 +532,8 @@ async function boot() {
     // overlays
     setOverlay(ov.hero, 1 - sstep(0.12, 0.5, s));
     setOverlay(ov.work, sstep(1.2, 1.5, s) * (1 - sstep(S.zoomStart, S.zoomStart + 0.3, s)) * (1 - sstep(0, 0.3, focusCur)));
+    const lit = roomLight(s).toFixed(2);
+    if (lit !== litWas) { litWas = lit; ov.work.style.setProperty('--lit', lit); }
     const aboutOp = sstep(S.cut + 0.2, S.cut + 0.45, s) * (1 - sstep(S.tunnelEnd - 0.25, S.tunnelEnd, s));
     setOverlay(ov.about, aboutOp);
     aboutBlocks[0].classList.toggle('is-on', aboutOp > 0.02 && s < S.aboutSwitch);

@@ -96,6 +96,14 @@ p { margin: 0; }
 
 /* ---------- canvas + scroll ---------- */
 #gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+/* Phone browsers hide their bars as the page scrolls. The picture is drawn for the screen with the bars
+   hidden (lvh) and the text sits in the screen with them showing (svh), so neither changes size when the
+   bars come and go: the bars only cover or uncover a strip at the bottom. js/main.js (resize) sizes the
+   renderer from the canvas itself. */
+@supports (height: 100lvh) {
+  #gl { bottom: auto; height: 100lvh; }
+  .ov { bottom: auto; height: 100svh; }
+}
 #scroll-track { position: relative; width: 1px; height: 1300vh; pointer-events: none; }
 
 /* ---------- preloader ---------- */
@@ -274,6 +282,24 @@ html.is-ready .site-header { opacity: 1; }
   width: min(560px, calc(100% - 2 * var(--gutter))); transform: none;
 }
 .ov--work.is-stacked .work__list li { break-inside: avoid; white-space: nowrap; }
+/* the list and the info sit on bands of the room's colour, so the screens either side and the words
+   on the wall never run behind the text; heights from js/main.js (frameWork), lit with the room */
+.ov--work.is-stacked::before, .ov--work.is-stacked::after {
+  content: ""; position: absolute; left: 0; right: 0; z-index: -1; pointer-events: none;
+  /* the lit room renders about 2.5 % darker than its colour (measured at 390 and 360 wide) */
+  background-color: color-mix(in srgb, color-mix(in srgb, var(--room, #e4dfd7) 97.5%, #000) 95%, transparent);
+  opacity: var(--lit, 1); transition: background-color .5s;
+}
+.ov--work.is-stacked::before {
+  top: 0; height: calc(var(--band-top, 0px) + 26px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent);
+}
+.ov--work.is-stacked::after {
+  bottom: 0; height: calc(var(--band-bottom, 0px) + 26px);
+  -webkit-mask-image: linear-gradient(to top, #000 calc(100% - 26px), transparent);
+  mask-image: linear-gradient(to top, #000 calc(100% - 26px), transparent);
+}
 @media (min-width: 600px) { .ov--work.is-stacked .work__list { columns: 2; column-gap: 36px; } }
 /* phones: two narrow columns leave the screen half again as much height */
 @media (min-width: 340px) and (max-width: 599px) { .ov--work.is-stacked .work__list { columns: 2; column-gap: 12px; font-size: 11px; } }

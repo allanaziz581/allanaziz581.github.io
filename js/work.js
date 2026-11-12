@@ -93,6 +93,8 @@ function codeWall() {
   return c;
 }
 
+export const SCREEN_ASPECT = W / H;
+
 export function createWork({ lowPower = false, projects = [] } = {}) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xebebeb);
@@ -162,16 +164,65 @@ export function createWork({ lowPower = false, projects = [] } = {}) {
   const ndc = new THREE.Vector2();
   let frame = 0;
   let baseZ = 9.5;
+  // the front screen sits inside `area` (CSS px, set by main.js from where the list and the info
+  // panel are), pulled back far enough to fit it and shifted to its centre with a view offset
+  let vw = 1, vh = 1, area = null, offX = 0, offY = 0, bend = 0;
+  const TAN = 2 * Math.tan(THREE.MathUtils.degToRad(17.5)); // view height per unit of distance (fov 35)
+  // post.js bends the finished image (barrel, strength `bend`): the scene point at NDC s shows at
+  // NDC o where s = o * (1 + bend * |o|^2) / (1 + 2 * bend), so the middle is enlarged up to 1 + 2 * bend
+  const toScene = (e, o) => e * (1 + bend * (e * e + o * o)) / (1 + 2 * bend);
+  const toShown = (x, y) => {
+    let ox = x, oy = y;
+    for (let i = 0; i < 16; i++) { const g = (1 + bend * (ox * ox + oy * oy)) / (1 + 2 * bend); ox = x / g; oy = y / g; }
+    return [ox, oy];
+  };
+  // the area as the scene has to see it: the largest scene box whose bent image stays inside it
+  function sceneArea(a) {
+    const L = a.l / vw * 2 - 1, R = a.r / vw * 2 - 1, T = 1 - a.t / vh * 2, B = 1 - a.b / vh * 2;
+    const ends = (lo, hi) => [lo <= 0 && hi >= 0 ? 0 : Math.min(Math.abs(lo), Math.abs(hi)), Math.max(Math.abs(lo), Math.abs(hi))];
+    const xs = ends(L, R), ys = ends(B, T);
+    const l = Math.max(...ys.map((o) => toScene(L, o))), r = Math.min(...ys.map((o) => toScene(R, o)));
+    const t = Math.min(...xs.map((o) => toScene(T, o))), b = Math.max(...xs.map((o) => toScene(B, o)));
+    return { l: (l + 1) / 2 * vw, r: (r + 1) / 2 * vw, t: (1 - t) / 2 * vh, b: (1 - b) / 2 * vh };
+  }
+
+  function frameScreen() {
+    camera.aspect = vw / vh;
+    const a = area ? sceneArea(area) : { l: 0, t: 0, r: vw, b: vh };
+    const fw = Math.max(1, a.r - a.l) / vw, fh = Math.max(1, a.b - a.t) / vh;
+    // never closer than 11, so big windows keep the size they always had
+    // 1.06: the bezel's soft edge plus the pointer parallax (the camera drifts a little with the mouse)
+    baseZ = Math.max(11, (W * 1.06) / (TAN * camera.aspect * fw), (H * 1.06) / (TAN * fh));
+    offX = area ? vw / 2 - (a.l + a.r) / 2 : 0;
+    offY = area ? vh / 2 - (a.t + a.b) / 2 : 0;
+    camera.setViewOffset(vw, vh, offX, offY, vw, vh);
+    // the wall has to cover the shifted view too
+    const far = TAN * (baseZ + 10);
+    const sx = (camera.aspect * far * (1 + 2 * Math.abs(offX) / vw)) / 44;
+    const sy = (far * (1 + 2 * Math.abs(offY) / vh)) / 22;
+    wall.scale.setScalar(Math.max(1, sx + 0.1, sy + 0.1));
+  }
 
   return {
     scene, camera, count: screens.length,
-    resize(w, h) {
-      camera.aspect = w / h;
-      const fit = (W * 1.3) / (2 * Math.tan(THREE.MathUtils.degToRad(17.5)) * camera.aspect);
-      baseZ = Math.max(11, fit);
-      camera.updateProjectionMatrix();
-      const need = (w / h) * 2 * Math.tan(THREE.MathUtils.degToRad(17.5)) * (baseZ + 10);
-      wall.scale.setScalar(Math.max(1, need / 44 + 0.1));
+    resize(w, h) { vw = w; vh = h; frameScreen(); },
+    // rect: CSS px the front screen must stay inside, as shown; k: the work room's barrel strength
+    setArea(rect, k = 0) { area = rect; bend = k; frameScreen(); },
+    // where the front screen shows right now (CSS px, after the barrel), for layout checks
+    screenRect() {
+      const s = screens.find((x) => x.group.visible && x.uniforms.uActive.value > 0.99);
+      if (!s) return null;
+      s.group.updateMatrixWorld();
+      const xs = [], ys = [];
+      for (let i = 0; i <= 8; i++) {
+        const u = -W / 2 + (W * i) / 8, v = -H / 2 + (H * i) / 8;
+        for (const [x, y] of [[u, -H / 2], [u, H / 2], [-W / 2, v], [W / 2, v]]) {
+          const p = new THREE.Vector3(x, y, 0).applyMatrix4(s.glass.matrixWorld).project(camera);
+          const [ox, oy] = toShown(p.x, p.y);
+          xs.push((ox + 1) / 2 * vw); ys.push((1 - oy) / 2 * vh);
+        }
+      }
+      return { l: Math.min(...xs), r: Math.max(...xs), t: Math.min(...ys), b: Math.max(...ys) };
     },
     setPointer(nx, ny) { mouse.set(nx, ny); },
     drawAll(t = 0) { screens.forEach((s) => redraw(s, t)); },
@@ -203,6 +254,8 @@ export function createWork({ lowPower = false, projects = [] } = {}) {
       });
       const zz = Math.max(THREE.MathUtils.smoothstep(zoom, 0, 1), focus);
       const free = 1 - focus;
+      // diving into a screen fills the whole window, so the offset eases back to the centre
+      camera.setViewOffset(vw, vh, offX * (1 - zz), offY * (1 - zz), vw, vh);
       camera.position.set(look.x * 0.35 * free, look.y * 0.25 * free, baseZ - zz * (baseZ - (focus > zoom ? 2.45 : 2.2)));
       camera.lookAt(look.x * 0.1 * free, look.y * 0.08 * free, 0);
       wallMat.color.copy(blend(rooms, idx, roomCol, 0xe4dfd7)).multiplyScalar(light);

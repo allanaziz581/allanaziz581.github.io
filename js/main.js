@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { createPost } from './post.js';
 import { createHero } from './hero.js';
-import { createWork } from './work.js';
+import { createWork, SCREEN_ASPECT } from './work.js';
 import { createTunnel } from './tunnel.js';
 import { createSound } from './sound.js';
 import { loadContent } from './content.js';
@@ -71,6 +71,12 @@ async function boot() {
   const dpr = Math.min(devicePixelRatio || 1, lowPower ? 1.5 : 1.75);
   renderer.setPixelRatio(dpr);
   const post = createPost(renderer, { samples: lowPower ? 2 : 4 });
+  // post look per scene (barrel = how hard the image is bent; work.setArea needs the work room's)
+  const LOOK = {
+    hero: { barrel: 0.24, aberr: 0.0045, scan: 0.2, grain: 0.07, vig: 0.95 },
+    work: { barrel: 0.16, aberr: 0.003, scan: 0.05, grain: 0.04, vig: 0.22 },
+    tunnel: { barrel: 0.22, aberr: 0.004, scan: 0.14, grain: 0.08, vig: 0.85 },
+  };
   const t0 = performance.now();
 
   setProgress(0.08);
@@ -101,6 +107,7 @@ async function boot() {
   // ---------- sizing ----------
   const track = $('#scroll-track');
   let vw = innerWidth, vh = innerHeight;
+  let queueFrameWork = () => {}; // set once the work overlay is wired up (below)
   function resize(force) {
     const w = innerWidth, h = innerHeight;
     // ignore small height changes from mobile browser bars
@@ -109,6 +116,7 @@ async function boot() {
     renderer.setSize(w, h, false);
     post.setSize(w, h, dpr);
     scenes.forEach((s) => s.resize(w, h));
+    queueFrameWork();
     track.style.height = `${Math.round((S.max + 1) * vh)}px`;
   }
   resize(true);
@@ -168,6 +176,36 @@ async function boot() {
   }
   addEventListener('resize', fitTitle);
 
+  // ---------- work layout: the front screen never sits under the list or the info panel ----------
+  // Side by side (list left, info right, screen between) or stacked (list on top, info along the
+  // bottom, screen between), whichever leaves the bigger screen; then the camera frames the screen
+  // inside that free area (work.setArea). Re-run on resize and when content changes.
+  const workIndex = $('.work__index');
+  const fitH = (a) => Math.max(0, Math.min((a.r - a.l) / SCREEN_ASPECT, a.b - a.t)); // screen height that fits
+  function frameWork() {
+    const w = innerWidth, h = innerHeight;
+    const air = clamp(w * 0.025, 14, 36);
+    const head = 62, foot = 40; // the name/menu row and the bottom row
+    ov.work.classList.remove('is-stacked');
+    const li = workIndex.getBoundingClientRect(), inf = info.getBoundingClientRect();
+    const side = { l: li.right + air, r: inf.left - air, t: head, b: h - foot };
+    // stacked: reserve room for the tallest project's info so the screen doesn't jump between projects
+    ov.work.classList.add('is-stacked');
+    let tallest = 0;
+    PROJECTS.forEach((_, i) => { fillInfo(i); tallest = Math.max(tallest, info.offsetHeight); });
+    const li2 = workIndex.getBoundingClientRect(), infBottom = info.getBoundingClientRect().bottom;
+    const stacked = { l: li2.left, r: w - li2.left, t: li2.bottom + air * 0.7, b: infBottom - tallest - air * 0.7 };
+    // keep the list on the left unless stacking buys a clearly bigger screen
+    const useStacked = fitH(stacked) > 1.3 * fitH(side);
+    ov.work.classList.toggle('is-stacked', useStacked);
+    fillInfo(Math.max(0, active));
+    work.setArea(useStacked ? stacked : side, LOOK.work.barrel);
+  }
+  let frameReq = 0;
+  queueFrameWork = () => { if (!frameReq) frameReq = requestAnimationFrame(() => { frameReq = 0; frameWork(); }); };
+  frameWork();
+  if (/[?&]layout\b/.test(location.search)) window.__workScreenRect = () => work.screenRect(); // layout checks only
+
   // --main / --pop (and --accent) follow the project in front, back to streetlight orange outside the work room
   let tintKey = '';
   function setTint(t) {
@@ -222,7 +260,7 @@ async function boot() {
       setActive(j);
       glitchKick = 1;
     },
-    onChange(i) { if (i === active) fillInfo(i); },
+    onChange(i) { if (i === active) fillInfo(i); queueFrameWork(); },
   });
   function openDetail(i) {
     closeMenu(false);
@@ -354,26 +392,18 @@ async function boot() {
     $('.sound-toggle__state', soundBtn).textContent = on ? 'on' : 'off';
   });
 
-  // ---------- pointer + cursor ----------
-  const cursor = $('.cursor');
+  // ---------- pointer (the cursor itself is a CSS pixel arrow) ----------
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
-  if (fine) root.classList.add('has-cursor');
   addEventListener('pointermove', (e) => {
     const nx = (e.clientX / innerWidth) * 2 - 1, ny = -(e.clientY / innerHeight) * 2 + 1;
     // a finger has no hover: touch would leave a permanent dent in the bust and tilt the scenes
     if (e.pointerType !== 'touch') scenes.forEach((s) => s.setPointer(nx, ny));
     if (!fine) return;
     const overScreen = workVisible() && active >= 0 && e.target === canvas && work.pick(nx, ny, active);
-    cursor.classList.toggle('is-link', overScreen || !!e.target.closest?.('a, button'));
     root.classList.toggle('over-screen', !!overScreen);
   }, { passive: true });
 
-  // ---------- post look per scene ----------
-  const LOOK = {
-    hero: { barrel: 0.24, aberr: 0.0045, scan: 0.2, grain: 0.07, vig: 0.95 },
-    work: { barrel: 0.16, aberr: 0.003, scan: 0.05, grain: 0.04, vig: 0.22 },
-    tunnel: { barrel: 0.22, aberr: 0.004, scan: 0.14, grain: 0.08, vig: 0.85 },
-  };
+  // ---------- post look per scene (LOOK is defined next to the post pass, above) ----------
   const U = post.uniforms;
   function applyLook(a, b, k) {
     U.uBarrel.value = lerp(a.barrel, b.barrel, k);

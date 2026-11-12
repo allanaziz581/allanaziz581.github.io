@@ -338,6 +338,7 @@ a, button, label, html.over-screen #gl { cursor: var(--cur-link); }
    project / info / role along the bottom with thumbnails, "> close <" at the top; js/detail.js
    places the slides */
 .detail {
+  --accent: var(--hi, #ff8a3d); /* the project's colour that reads on this dark page */
   position: fixed; inset: 0; z-index: 800;
   display: grid; grid-template-rows: auto minmax(0, 1fr);
   padding: 0 var(--gutter) calc(20px + env(safe-area-inset-bottom));
@@ -368,8 +369,14 @@ a, button, label, html.over-screen #gl { cursor: var(--cur-link); }
 .detail__hint-touch { display: none; }
 @media (hover: none) and (pointer: coarse) { .detail__hint-wheel { display: none; } .detail__hint-touch { display: inline; } }
 
-.detail__view { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; grid-template-columns: minmax(0, 1fr); min-height: 0; }
+/* the page scrolls: the strip and the bar fill the first screen, the details come up under them */
+.detail__view {
+  min-height: 0; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter);
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .22) transparent;
+}
 .detail__view[hidden] { display: none; }
+.detail__stage { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr) auto auto; grid-template-columns: minmax(0, 1fr); }
 .detail__gallery {
   grid-row: 1; grid-column: 1; position: relative; min-height: 0; overflow: hidden; margin: 0 calc(-1 * var(--gutter));
   perspective: 1700px; touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: grab;
@@ -427,19 +434,33 @@ a, button, label, html.over-screen #gl { cursor: var(--cur-link); }
 .detail__thumb[aria-selected="true"] { opacity: 1; border-color: #fff; box-shadow: 0 0 0 1px #fff; }
 .detail__thumb-tag { position: absolute; left: 4px; bottom: 2px; font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #fff; text-shadow: 0 0 3px #000; }
 
-/* "> more about it": summary, highlights and tools over the gallery */
+/* "> more about it": scrolling down brings it up under the bar. The summary sits on the left with the
+   tools under it; on the right each piece of work is a numbered heading with a sentence or two. */
 .detail__sheet {
-  grid-row: 1; grid-column: 1; z-index: 300; justify-self: center; align-self: center; width: min(760px, 100%); max-height: 100%; min-height: 0; overflow: auto; overscroll-behavior: contain;
-  padding: 22px 26px; background: rgba(6, 7, 8, .97); border: 1px solid rgba(255, 255, 255, .16);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 450; font-size: 14px; line-height: 1.55;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.1fr); gap: 36px clamp(28px, 4.5vw, 80px);
+  align-items: start; margin-top: clamp(28px, 5vh, 56px); padding: 34px 0 calc(80px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(255, 255, 255, .14); position: relative; z-index: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 450; font-size: 14px; line-height: 1.6;
 }
-.detail__sheet .detail__k { margin-top: 18px; }
-.detail__summary { margin: 0; color: #f6f7f7; }
-.detail__list li { position: relative; padding-left: 18px; margin: 6px 0; }
-.detail__list li::before { content: ">"; position: absolute; left: 0; color: var(--accent); }
-.detail__tools { display: flex; flex-wrap: wrap; gap: 6px; }
+/* a dark backing from edge to edge, so the room behind doesn't show through the reading */
+.detail__sheet::before {
+  content: ""; position: absolute; z-index: -1; inset: -60px calc(-1 * var(--gutter)) 0; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(4, 4, 7, 0), rgba(4, 4, 7, .95) 150px);
+}
+.detail__sheet [data-block="summary"] { grid-column: 1; grid-row: 1; }
+.detail__sheet [data-block="tools"] { grid-column: 1; grid-row: 2; }
+.detail__sheet [data-block="highlights"] { grid-column: 2; grid-row: 1 / span 2; }
+.detail__sheet .detail__k { margin: 0 0 14px; }
+.detail__summary { margin: 0; font-size: clamp(15px, 1.15vw, 18px); line-height: 1.6; color: #f6f7f7; }
+.detail__sheet .detail__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px clamp(24px, 3vw, 52px); margin: 0; padding: 0; list-style: none; }
+.detail__sheet .detail__item { margin: 0; padding: 0; }
+.detail__sheet .detail__item::before { content: none; }
+.detail__item-t { margin: 0 0 8px; font-family: var(--font-head); font-weight: 800; font-size: clamp(14px, 1.05vw, 16px); line-height: 1.2; letter-spacing: -.005em; text-transform: uppercase; color: #fff; }
+.detail__item-n { margin-right: 4px; font-family: var(--font-dot); font-weight: 800; color: var(--accent); }
+.detail__item p { margin: 0; color: rgba(238, 240, 240, .7); }
+.detail__tools { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .detail__tools li { padding: 2px 8px; border: 1px solid rgba(255, 255, 255, .22); font-size: 12px; }
-.detail__links[hidden], [data-block][hidden], .detail__sub[hidden], .detail__meta[hidden], .detail__summary[hidden], .detail__more[hidden], .detail__sheet[hidden] { display: none; }
+.detail__links[hidden], [data-block][hidden], .detail__sub[hidden], .detail__meta[hidden], .detail__more[hidden], .detail__sheet[hidden] { display: none; }
 .detail button:focus-visible, .detail a:focus-visible, .detail input:focus-visible,
 .detail textarea:focus-visible, .detail select:focus-visible { outline: 1px dashed var(--accent); outline-offset: 3px; }
 html.detail-open .site-header { z-index: 1000; }
@@ -493,12 +514,16 @@ html.edit-dirty .editbar [data-edit="save"] { color: var(--accent); }
   .about__block { bottom: calc(26px + env(safe-area-inset-bottom)); }
   .detail { padding: 0 12px calc(10px + env(safe-area-inset-bottom)); }
   .detail__top { padding-top: 58px; }
-  .detail__view { grid-template-rows: auto auto minmax(0, 1fr); }
+  .detail__view { margin: 0 -12px; padding: 0 12px; }
+  .detail__stage { height: auto; grid-template-rows: auto auto auto; }
   .detail__gallery { height: calc(100vw * .78 * 9 / 16 + 24px); margin: 0 -12px; }
-  .detail__bar { grid-template-columns: minmax(0, 1fr); gap: 14px; min-height: 0; overflow: auto; overscroll-behavior: contain; padding-top: 10px; }
+  .detail__bar { grid-template-columns: minmax(0, 1fr); gap: 14px; padding-top: 10px; }
   .detail__thumbs { order: -1; max-width: none; }
   .detail__arrow { display: none; }
-  .detail__sheet { grid-row: 1 / -1; width: 100%; padding: 16px; }
+  .detail__sheet { grid-template-columns: minmax(0, 1fr); gap: 28px; margin-top: 22px; padding-top: 22px; }
+  .detail__sheet [data-block] { grid-column: 1; grid-row: auto; }
+  .detail__sheet [data-block="tools"] { order: 1; }
+  .detail__sheet .detail__list { grid-template-columns: minmax(0, 1fr); gap: 22px; }
   .detail__form { top: 60px; left: 10px; right: 10px; bottom: 10px; width: auto; padding: 18px 16px 14px; }
   .editbar { bottom: 8px; }
   .legal { bottom: calc(16px + env(safe-area-inset-bottom)); }

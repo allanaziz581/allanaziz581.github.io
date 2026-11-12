@@ -25,13 +25,18 @@ KEY_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 RESERVED = {"content", "work", "about", "contact", "home", "studio", "menu", "gl", "scroll-track", "detail",
             "work-h", "about-h", "contact-h", "edit"}
 TEXT_FIELDS = ("category", "title", "subtitle", "when", "where", "desc", "summary", "poster", "schemaType")
-LIST_FIELDS = ("role", "highlights", "tools")
+LIST_FIELDS = ("role", "tools")
 MEDIA_RE = re.compile(r"^assets/[A-Za-z0-9_./-]+\.(jpg|jpeg|png|webp|mp4|webm)$")
 SCHEMA_TYPES = {"CreativeWork", "SoftwareSourceCode", "VideoGame", "OrganizationRole", "MusicComposition", "Product"}
 
 
 class ContentError(ValueError):
     pass
+
+
+def hl_text(h):
+    """One highlight as a line of text: 'Heading: description', or the text itself."""
+    return f"{h['title']}: {h['text']}" if isinstance(h, dict) else h
 
 
 def validate(data):
@@ -68,6 +73,21 @@ def validate(data):
             if not isinstance(v, list) or not all(isinstance(x, str) for x in v):
                 raise ContentError(f"{key}: '{f}' must be a list of text")
             q[f] = [x.strip() for x in v if x.strip()]
+        # "more about it": each piece of work is plain text, or a short heading with a description
+        hl = p.get("highlights", [])
+        if not isinstance(hl, list):
+            raise ContentError(f"{key}: 'highlights' must be a list")
+        q["highlights"] = []
+        for x in hl:
+            if isinstance(x, str):
+                if x.strip():
+                    q["highlights"].append(x.strip())
+            elif isinstance(x, dict) and isinstance(x.get("title", ""), str) and isinstance(x.get("text", ""), str):
+                t, d = x.get("title", "").strip(), x.get("text", "").strip()
+                if d:
+                    q["highlights"].append({"title": t, "text": d} if t else d)
+            else:
+                raise ContentError(f"{key}: each highlight is text or {{title, text}}")
         links = p.get("links", [])
         if not isinstance(links, list):
             raise ContentError(f"{key}: links must be a list")
@@ -144,7 +164,7 @@ def readable_articles(work):
             lines.append(f"      <p>{e(p['summary'] or p['desc'])}</p>")
         if p["highlights"]:
             lines.append('      <ul data-key="highlights">')
-            lines += [f"        <li>{e(h)}</li>" for h in p["highlights"]]
+            lines += [f"        <li>{e(hl_text(h))}</li>" for h in p["highlights"]]
             lines.append("      </ul>")
         if p["tools"]:
             lines.append(f"      <p>Tools: {e(', '.join(p['tools']))}.</p>")
@@ -200,7 +220,7 @@ def llms_work(work):
         out.append(p["summary"] or p["desc"])
         if p["highlights"]:
             out.append("")
-            out += [f"- {h}" for h in p["highlights"]]
+            out += [f"- {hl_text(h)}" for h in p["highlights"]]
         if p["tools"]:
             out.append("")
             out.append(f"Tools: {', '.join(p['tools'])}.")

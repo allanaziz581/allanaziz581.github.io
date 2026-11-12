@@ -2,7 +2,7 @@
 //
 // View mode is a full-screen strip of slides that loops through every project (each one's screen
 // artwork, then its pictures, videos and frame sequences), with project, info and role along the
-// bottom for the slide in front and the summary, highlights and tools behind "> more about it".
+// bottom for the slide in front; scrolling down brings up "more about it" (summary, what I did, tools).
 // Edit mode turns the same dialog into a form bound to content.json; "save" posts to
 // tools/serve.py (localhost only), which writes content.json and rebuilds the readable layer,
 // JSON-LD and llms.txt. Without that server, save downloads content.json instead.
@@ -19,7 +19,7 @@ const FIELDS = [
   ['where', 'where', 'text'],
   ['desc', 'short text (shown beside the screens)', 'area', 3],
   ['summary', 'summary (detail page)', 'area', 5],
-  ['highlights', 'highlights, one per line', 'lines', 6],
+  ['highlights', 'more about it, one per line: heading | description', 'lines', 6],
   ['tools', 'tools, comma separated', 'csv'],
   ['role', 'role, comma separated', 'csv'],
   ['links', 'links, one per line: label | https://...', 'links', 3],
@@ -28,13 +28,18 @@ const FIELDS = [
 ];
 
 function toText(type, v) {
-  if (type === 'lines') return (v || []).join('\n');
+  if (type === 'lines') return (v || []).map((x) => (typeof x === 'string' ? x : `${x.title} | ${x.text}`)).join('\n');
   if (type === 'csv') return (v || []).join(', ');
   if (type === 'links') return (v || []).map((l) => `${l.label} | ${l.href}`).join('\n');
   return v ?? '';
 }
 function fromText(type, s) {
-  if (type === 'lines') return s.split('\n').map((x) => x.trim()).filter(Boolean);
+  if (type === 'lines') {
+    return s.split('\n').map((x) => x.trim()).filter(Boolean).map((line) => {
+      const k = line.indexOf(' | ');
+      return k > 0 ? { title: line.slice(0, k).trim(), text: line.slice(k + 3).trim() } : line;
+    });
+  }
   if (type === 'csv') return s.split(',').map((x) => x.trim()).filter(Boolean);
   if (type === 'links') {
     return s.split('\n').map((x) => x.trim()).filter(Boolean).map((line) => {
@@ -55,7 +60,7 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
   const title = $('.detail__title', el), sub = $('.detail__sub', el), meta = $('.detail__meta', el);
   const desc = $('.detail__desc', el), summary = $('.detail__summary', el), list = $('.detail__list', el), tools = $('.detail__tools', el);
   const role = $('.detail__role', el), links = $('.detail__links', el);
-  const hlBlock = $('[data-block="highlights"]', el), toolBlock = $('[data-block="tools"]', el);
+  const sumBlock = $('[data-block="summary"]', el), hlBlock = $('[data-block="highlights"]', el), toolBlock = $('[data-block="tools"]', el);
   const gallery = $('.detail__gallery', el), track = $('.detail__track', el), thumbs = $('.detail__thumbs', el), cap = $('.detail__cap', el);
   const prevPic = $('.detail__arrow--prev', el), nextPic = $('.detail__arrow--next', el);
   const more = $('.detail__more', el), sheet = $('.detail__sheet', el), infoBar = $('.detail__bar', el);
@@ -327,13 +332,9 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
   nextPic.addEventListener('click', () => moveBy(1));
   addEventListener('resize', () => { if (open && !edit) layout(performance.now()); });
 
-  function setSheet(on) {
-    sheet.hidden = !on;
-    more.setAttribute('aria-expanded', String(on));
-    more.textContent = on ? '> less' : '> more about it';
-    if (on) sheet.scrollTop = 0;
-  }
-  more.addEventListener('click', () => setSheet(sheet.hidden));
+  // "> more about it" is just further down the page: scrolling down (or this button) brings it up
+  const scrollView = (top) => view.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
+  more.addEventListener('click', () => scrollView(sheet.offsetTop - 12));
 
   function header(i) {
     num.textContent = `[${pad(i)}]`;
@@ -350,12 +351,24 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
     meta.hidden = !meta.textContent;
     desc.textContent = p.desc || p.summary || '';
     summary.textContent = p.summary || '';
-    summary.hidden = !p.summary;
-    list.replaceChildren(...(p.highlights || []).map((h) => Object.assign(document.createElement('li'), { textContent: h })));
+    sumBlock.hidden = !p.summary;
+    // each piece of work: a numbered heading and a sentence or two (plain text items get just the text)
+    list.replaceChildren(...(p.highlights || []).map((h, k) => {
+      const li = document.createElement('li');
+      li.className = 'detail__item';
+      if (typeof h !== 'string' && h.title) {
+        const t = Object.assign(document.createElement('h4'), { className: 'detail__item-t' });
+        t.append(Object.assign(document.createElement('span'), { className: 'detail__item-n', textContent: pad(k) }), ` ${h.title}`);
+        li.append(t);
+      }
+      li.append(Object.assign(document.createElement('p'), { textContent: typeof h === 'string' ? h : h.text }));
+      return li;
+    }));
     hlBlock.hidden = !(p.highlights || []).length;
     tools.replaceChildren(...(p.tools || []).map((h) => Object.assign(document.createElement('li'), { textContent: h })));
     toolBlock.hidden = !(p.tools || []).length;
     more.hidden = !(p.summary || (p.highlights || []).length || (p.tools || []).length);
+    sheet.hidden = more.hidden;
     role.textContent = (p.role || []).join(', ');
     links.replaceChildren(...(p.links || []).map((l) => {
       const a = document.createElement('a');
@@ -364,7 +377,6 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
       return a;
     }));
     links.hidden = !(p.links || []).length;
-    setSheet(false);
   }
 
   function fillForm(i) {
@@ -434,6 +446,7 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
     form.hidden = !edit;
     if (edit) { cur = i; header(i); fillForm(i); form.scrollTop = 0; return; }
     if (!built) build();
+    view.scrollTop = 0;
     front = -1; cur = -1;
     quiet = true;
     goSlide(byProj[i][0], true);
@@ -487,7 +500,8 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '');
     if (e.key === 'Escape') {
       e.preventDefault();
-      if (!sheet.hidden) { setSheet(false); more.focus(); } else close();
+      // scrolled down into the details: back up to the strip first, then out
+      if (!edit && view.scrollTop > 8) { scrollView(0); closeBtn.focus({ preventScroll: true }); } else close();
       return;
     }
     if (!typing && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {

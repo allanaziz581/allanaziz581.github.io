@@ -103,9 +103,9 @@
         "@id": "https://allanaziz.com/#tesla",
         "name": "Tesla: Manufacturing controls engineering intern",
         "url": "https://allanaziz.com/#tesla",
-        "description": "A summer on a manufacturing controls team at Tesla in Austin. I split the time between the controls themselves (Siemens PLC and HMI software, interlocks, fail-safe behavior) and the tools around them: an AI engineering platform that reads the team's documentation and helps engineers trace and fix equipment problems. The specifics stay with Tesla; this is the shape of the work.",
+        "description": "A summer on a manufacturing controls team at Tesla in Austin. I split the time between the controls themselves (Siemens PLC and HMI software, interlocks, fail-safe behavior, commissioning and troubleshooting on the line) and the tools around them: an AI engineering platform, its evaluations and a dashboard that help engineers find and fix equipment problems. Production numbers and equipment specifics stay with Tesla.",
         "roleName": "Manufacturing controls engineering intern",
-        "keywords": "Siemens TIA Portal, S7-1500, SCL / LAD / FBD, HMI, Python, LLMs and retrieval, Evaluations, REST, SSO, RFID"
+        "keywords": "Siemens TIA Portal, S7-1500, SCL / LAD / FBD, HMI, Python, C++, LLMs and retrieval, Evaluations, REST, SSO, RFID, Machine vision, Industrial networks, Remote I/O"
       }
     },
     {
@@ -266,27 +266,30 @@
     <article id="tesla" data-key="project:tesla" data-category="tesla">
       <h3>01. Tesla: Manufacturing controls engineering intern</h3>
       <p>May to August 2026, Austin, Texas. Category: tesla.</p>
-      <p>A summer on a manufacturing controls team at Tesla in Austin. I split the time between the controls themselves (Siemens PLC and HMI software, interlocks, fail-safe behavior) and the tools around them: an AI engineering platform that reads the team&#x27;s documentation and helps engineers trace and fix equipment problems. The specifics stay with Tesla; this is the shape of the work.</p>
+      <p>A summer on a manufacturing controls team at Tesla in Austin. I split the time between the controls themselves (Siemens PLC and HMI software, interlocks, fail-safe behavior, commissioning and troubleshooting on the line) and the tools around them: an AI engineering platform, its evaluations and a dashboard that help engineers find and fix equipment problems. Production numbers and equipment specifics stay with Tesla.</p>
       <ul data-key="highlights">
-        <li>Built an AI engineering platform for the controls team: document ingestion, semantic retrieval over manuals and programs, labelled debugging traces, and system graphs of how equipment connects.</li>
-        <li>Set up versioned evaluations that check AI-generated PLC code against expected equipment behavior and safety constraints before it is used.</li>
-        <li>Programmed and commissioned Siemens S7-1500 PLC and HMI logic in TIA Portal (SCL, ladder and function block diagram) with process interlocks and fail-safe behavior.</li>
-        <li>Connected plant systems through REST APIs, single sign-on and RFID.</li>
-        <li>Troubleshot equipment faults alongside mechanical, electrical and software engineers.</li>
+        <li>An AI platform for the controls team: A Python and C++ platform that takes in the team&#x27;s documentation, searches it by meaning, and keeps labeled debugging traces and graphs of how the systems connect. It supports code generation, fault classification, schematic tracing and incident diagnosis.</li>
+        <li>Testing the AI before it is trusted: Versioned evaluations check generated code against how the equipment should behave and its safety constraints, and safety-critical changes go through human review. They caught wrong fault diagnoses and generated changes that left out required interlocks, and those results shaped the next revisions of the platform.</li>
+        <li>A dashboard for the line: An AI-assisted dashboard that flags abnormal production trends and recurring process faults, and puts the metrics and equipment context beside each flag so engineers can look into possible safety issues.</li>
+        <li>PLC and HMI software: I wrote and commissioned Siemens S7-1500 PLC and HMI software in TIA Portal, in SCL, ladder and function block diagram: process interlocks, operator workflows, fail-safe controls, multi-axis sequencing, debounce logic and torque control for equipment running in real time.</li>
+        <li>One interface across the lines: I designed and documented reusable PLC/HMI interfaces and integration specifications: where direct writes or a cyclic abstraction fit, how HMI and IPC network addresses map across several production lines, and a standard way to control the equipment.</li>
+        <li>Plant integrations: I built and debugged the APIs and sign-in links between plant systems (REST services, single sign-on, RFID badge authentication and identity mapping), and reverse-engineered legacy binaries to trace failures that kept coming back across connected systems.</li>
+        <li>Machine-vision inspection: I helped commission, calibrate and validate camera-based inspection systems in battery manufacturing, comparing production images against the CAD design and checking parts for defects.</li>
+        <li>Finding the root cause: When equipment went down I worked with electrical, mechanical, controls and network engineers to find out why, from PLCs, remote I/O, HMIs and industrial networks to safety circuits, power, sensors, cabling and cameras, using schematics, PLC diagnostic buffers, watch tables and live tests.</li>
       </ul>
-      <p>Tools: Siemens TIA Portal, S7-1500, SCL / LAD / FBD, HMI, Python, LLMs and retrieval, Evaluations, REST, SSO, RFID.</p>
-      <p>Role: controls engineering, plc / hmi, ai platform.</p>
+      <p>Tools: Siemens TIA Portal, S7-1500, SCL / LAD / FBD, HMI, Python, C++, LLMs and retrieval, Evaluations, REST, SSO, RFID, Machine vision, Industrial networks, Remote I/O.</p>
+      <p>Role: controls engineering, plc / hmi, ai platform, machine vision.</p>
     </article>
     <article id="music" data-key="project:music" data-category="music">
       <h3>02. Music: Songwriter, producer and guitarist</h3>
       <p>Ongoing, College Station, Texas. Category: music.</p>
       <p>I write and produce my own songs, beats and orchestral sketches, and I minor in music technology at Texas A&amp;M. The habits carry over to the engineering: get a rough version down fast, listen hard, and fix whatever doesn&#x27;t feel right.</p>
       <ul data-key="highlights">
-        <li>Write, arrange and produce in Logic Pro and Ableton Live, from the first idea to a mixed track.</li>
-        <li>Orchestral sketches and mockups with Spitfire&#x27;s BBC Symphony Orchestra for strings, brass and winds.</li>
-        <li>Guitar first; MainStage for playing parts live.</li>
-        <li>Built my own DSP effects rig for guitar (it&#x27;s in the engineering projects).</li>
-        <li>Minor in Music Technology at Texas A&amp;M University.</li>
+        <li>From the first idea to a mix: I write, arrange and produce in Logic Pro and Ableton Live, taking a song from the first idea to a mixed track.</li>
+        <li>Orchestral sketches: Strings, brass and winds come from Spitfire&#x27;s BBC Symphony Orchestra, which I use for orchestral sketches and mockups.</li>
+        <li>Guitar first: Most of my songs start on guitar. For playing parts live I use MainStage.</li>
+        <li>My own effects rig: I built my own DSP effects rig for guitar; it has its own page with the engineering projects.</li>
+        <li>Music technology: I minor in music technology at Texas A&amp;M University.</li>
       </ul>
       <p>Tools: Logic Pro, Ableton Live, MainStage, GarageBand, Spitfire BBC Symphony Orchestra, Splice, Guitar.</p>
       <p>Role: writing, production, guitar.</p>
@@ -296,12 +299,12 @@
       <p>2026, Personal project. Category: ai.</p>
       <p>A plain 2D video goes in. Object detection finds the subject in every frame, depth models and camera solving lift each frame into 3D, and the frames are joined into one scene you can orbit and scrub through time. Earlier positions stay in the scene as ghosts, so a deer&#x27;s whole path through the woods shows at once. The demo below comes out of my own pipeline from a single clip, with no 3D scanner and no extra cameras.</p>
       <ul data-key="highlights">
-        <li>4D reconstruction from one ordinary video: the camera path solved, the subject tracked frame by frame, and the scene placed in x, y, z and time.</li>
-        <li>Object detection measured on a 1,000-image hold-out: RF-DETR large finds people at 0.878 AP@0.50 in 35 ms a frame on an M5 Max, against 0.489 for the small on-device model.</li>
-        <li>Open-vocabulary detection and segmentation (Grounding DINO and SAM) for subjects the stock detectors miss, such as a deer.</li>
-        <li>Gaussian splats and per-frame 3D Gaussians for the photoreal version of the scene, trained on the real frames and scored on held-out frames.</li>
-        <li>Fully automatic: drop a clip in a folder and the pipeline runs end to end and writes its own report, with no one in the loop.</li>
-        <li>Native desktop app in Rust on wgpu with a 4D timeline, orbit, top-down and follow cameras, and manual correction of detections.</li>
+        <li>Space and time from one video: One ordinary video is enough: the camera&#x27;s path is solved, the subject is tracked frame by frame, and the whole scene is placed in x, y, z and time.</li>
+        <li>Detection, measured: On a 1,000-image hold-out set, RF-DETR large finds people at 0.878 AP@0.50 in 35 ms a frame on an M5 Max, against 0.489 for the small model that runs on the device.</li>
+        <li>What the stock detectors miss: For subjects such as a deer, open-vocabulary detection and segmentation (Grounding DINO and SAM) find them and cut them out.</li>
+        <li>The photoreal version: Gaussian splats and per-frame 3D Gaussians, trained on the real frames and scored on frames held out from training.</li>
+        <li>No one in the loop: Drop a clip in a folder and the pipeline runs end to end and writes its own report.</li>
+        <li>Its own app: A native desktop app in Rust on wgpu: a 4D timeline, orbit, top-down and follow cameras, and manual correction of detections.</li>
       </ul>
       <p>Tools: Python, PyTorch (Apple MPS), RF-DETR, Grounding DINO, SAM, Depth Anything 3, COLMAP, Gaussian splatting, Rust, wgpu, Core ML.</p>
       <p>Role: computer vision, ai, software.</p>
@@ -311,10 +314,10 @@
       <p>2026, in development, Texas A&amp;M, College Station. Category: headset.</p>
       <p>A wearable I&#x27;m building with a small team at Texas A&amp;M: a headset that watches what&#x27;s coming up behind you and tells you without blocking your ears. It&#x27;s early, and parts of it stay private until the team is ready, so this is the outline.</p>
       <ul data-key="highlights">
-        <li>Designed custom four-layer circuit boards in KiCad, from schematic through fabrication and assembly.</li>
-        <li>Building a sensor node with a camera, radar and a distance sensor; its firmware logs every reading so tests can be replayed.</li>
-        <li>Wrote a native Mac app for the computer-vision work: live camera, object detection and a 3D replay of what the sensors saw.</li>
-        <li>Designed and 3D-printed enclosures and mounts for the prototypes.</li>
+        <li>Circuit boards: I designed custom four-layer circuit boards in KiCad, from the schematic through fabrication and assembly.</li>
+        <li>A sensor node: I&#x27;m building a sensor node with a camera, radar and a distance sensor; its firmware logs every reading so tests can be replayed.</li>
+        <li>A Mac app for the vision work: A native Mac app for the computer-vision work: live camera, object detection and a 3D replay of what the sensors saw.</li>
+        <li>Enclosures: I designed and 3D-printed the enclosures and mounts for the prototypes.</li>
       </ul>
       <p>Tools: KiCad, ESP32-S3, C++, Swift and SwiftUI, Core ML, Python, Computer vision, 3D printing.</p>
       <p>Role: hardware, embedded, computer vision.</p>
@@ -324,11 +327,11 @@
       <p>April 2025 to February 2026, College Station, Texas. Category: ai.</p>
       <p>ThinkFree Finance explains markets for people who don&#x27;t follow them for a living: renters, hourly workers, small-business owners, students. It reads the news, links it to public records and writes plain-English reports. A language model can state a wrong number as confidently as a right one, so the pipeline checks what it can and labels what it can&#x27;t.</p>
       <ul data-key="highlights">
-        <li>AI pipeline: news collection, embedding-based clustering, LLM summaries and FAISS retrieval over economic reference texts, built to process over 1,000 articles a day.</li>
-        <li>Links politicians, bills, lobbying, congressional trades and public spending using SEC EDGAR, OpenFEC, USASpending, BLS, Census and other public sources.</li>
-        <li>Numbers in generated reports are checked against the source data, and summaries that fail are withheld.</li>
-        <li>FastAPI website with accounts, MFA, CSRF protection, role-based access and a hash-chained audit log, plus a SwiftUI iPhone app.</li>
-        <li>Ran my own security review in October 2026 and logged every bug I found with the test that proves the fix.</li>
+        <li>The news pipeline: News is collected, clustered by embeddings and summarized by a language model, with FAISS retrieval over economic reference texts; it&#x27;s built to process over 1,000 articles a day.</li>
+        <li>Following the money: It links politicians, bills, lobbying, congressional trades and public spending, using SEC EDGAR, OpenFEC, USASpending, BLS, Census and other public sources.</li>
+        <li>Checking the numbers: Numbers in generated reports are checked against the source data, and a summary that fails the check is withheld.</li>
+        <li>Website and app: A FastAPI website with accounts, MFA, CSRF protection, role-based access and a hash-chained audit log, plus a SwiftUI iPhone app.</li>
+        <li>My own security review: In October 2026 I ran my own security review and logged every bug I found with the test that proves the fix.</li>
       </ul>
       <p>Tools: Python, FastAPI, FAISS, Sentence embeddings, LLM APIs, JavaScript, SwiftUI, pytest.</p>
       <p>Role: founder, software, ai.</p>
@@ -339,9 +342,9 @@
       <p>October 2026. Category: engineering.</p>
       <p>A small piece of digital hardware written in OCaml with Jane Street&#x27;s Hardcaml. Turn a rotary encoder and a PWM output follows, sliding to the new duty cycle over a few periods instead of jumping there. Simulated and tested, with the Verilog generated; a learning project that hasn&#x27;t been run on an FPGA board yet.</p>
       <ul data-key="highlights">
-        <li>PWM block with interpolation: each new target ramps in over a fixed number of periods and lands exactly, with no rounding error.</li>
-        <li>Quadrature decoder for an EC11-style encoder: synchronizers, debouncing, direction from the A and B edges, and clicks only on real detents.</li>
-        <li>Waveform tests in simulation for every block, and generated Verilog.</li>
+        <li>A PWM that glides: Each new duty-cycle target ramps in over a fixed number of periods and lands exactly, with no rounding error.</li>
+        <li>Reading the encoder: A quadrature decoder for an EC11-style rotary encoder: synchronizers, debouncing, direction from the A and B edges, and a click only on a real detent.</li>
+        <li>Tested in simulation: Every block has waveform tests in simulation, and the Verilog is generated from the OCaml.</li>
       </ul>
       <p>Tools: OCaml, Hardcaml, Verilog, Simulation, Expect tests.</p>
       <p>Role: digital design, ocaml.</p>
@@ -352,8 +355,8 @@
       <p> Category: engineering.</p>
       <p>A digital signal-processing effects system for my own guitar. It started on a breadboard and was tested there, and it&#x27;s the project where the engineering bench and the music meet.</p>
       <ul data-key="highlights">
-        <li>Breadboarded the signal chain from guitar input to processed output.</li>
-        <li>Tested it on the bench and by ear.</li>
+        <li>On a breadboard: I breadboarded the signal chain from the guitar input to the processed output.</li>
+        <li>Tested by ear: I tested it on the bench and by ear.</li>
       </ul>
       <p>Tools: DSP, Breadboard prototyping, Guitar.</p>
       <p>Role: hardware, dsp, guitar.</p>
@@ -363,9 +366,9 @@
       <p>Fall 2022, Texas A&amp;M, College Station. Category: engineering.</p>
       <p>A virtual-reality game built by the Aggie Coding Club. I was one of its main contributors and built the world the player walks through: the maps, the cave level, and the environment, foliage and grass.</p>
       <ul data-key="highlights">
-        <li>Built the game&#x27;s maps and its cave level in Unity.</li>
-        <li>Environment art: assets, foliage and grass, and the scripts that place them.</li>
-        <li>Worked in a club team through Git.</li>
+        <li>Maps and the cave: I built the game&#x27;s maps and its cave level in Unity.</li>
+        <li>The environment: The environment art: assets, foliage and grass, and the scripts that place them.</li>
+        <li>A club team: We worked as a club team through Git.</li>
       </ul>
       <p>Tools: Unity, C#, VR, Git.</p>
       <p>Role: level design, unity.</p>
@@ -496,37 +499,40 @@
       <span><span class="detail__num">[01]</span> <span class="detail__cat"></span> <span class="detail__count"></span></span>
       <button type="button" data-detail-next>next &gt;</button>
     </div>
-    <p class="detail__hint" aria-hidden="true"><span class="detail__hint-wheel">scroll down to zoom back out, sideways for more pictures</span><span class="detail__hint-touch">swipe down to zoom back out</span></p>
+    <p class="detail__hint" aria-hidden="true"><span class="detail__hint-wheel">scroll down for more, up to zoom back out, sideways for more pictures</span><span class="detail__hint-touch">swipe up for more, down to zoom back out</span></p>
   </div>
-  <div class="detail__view">
-    <div class="detail__gallery" aria-roledescription="carousel" aria-label="pictures">
-      <div class="detail__track"></div>
-      <button class="detail__arrow detail__arrow--prev" type="button" aria-label="previous picture">&lt;</button>
-      <button class="detail__arrow detail__arrow--next" type="button" aria-label="next picture">&gt;</button>
+  <div class="detail__view detail__scroll">
+    <div class="detail__stage">
+      <div class="detail__gallery" aria-roledescription="carousel" aria-label="pictures">
+        <div class="detail__track"></div>
+        <button class="detail__arrow detail__arrow--prev" type="button" aria-label="previous picture">&lt;</button>
+        <button class="detail__arrow detail__arrow--next" type="button" aria-label="next picture">&gt;</button>
+      </div>
+      <p class="detail__cap" aria-live="polite"></p>
+      <div class="detail__bar">
+        <div class="detail__col detail__col--project">
+          <h3 class="detail__k">project</h3>
+          <h2 class="detail__title" id="detail-title"></h2>
+          <p class="detail__sub"></p>
+          <p class="detail__meta"></p>
+        </div>
+        <div class="detail__col detail__col--info">
+          <h3 class="detail__k">info</h3>
+          <p class="detail__desc"></p>
+          <button class="detail__more" type="button" aria-controls="detail-sheet">&gt; more about it</button>
+        </div>
+        <div class="detail__col detail__col--role">
+          <h3 class="detail__k">role</h3>
+          <p class="detail__role"></p>
+          <div class="detail__links"></div>
+        </div>
+        <div class="detail__thumbs" role="tablist" aria-label="pictures"></div>
+      </div>
     </div>
-    <p class="detail__cap" aria-live="polite"></p>
-    <div class="detail__bar detail__scroll">
-      <div class="detail__col detail__col--project">
-        <h3 class="detail__k">project</h3>
-        <h2 class="detail__title" id="detail-title"></h2>
-        <p class="detail__sub"></p>
-        <p class="detail__meta"></p>
-      </div>
-      <div class="detail__col detail__col--info">
-        <h3 class="detail__k">info</h3>
-        <p class="detail__desc"></p>
-        <button class="detail__more" type="button" aria-expanded="false" aria-controls="detail-sheet">&gt; more about it</button>
-      </div>
-      <div class="detail__col detail__col--role">
-        <h3 class="detail__k">role</h3>
-        <p class="detail__role"></p>
-        <div class="detail__links"></div>
-      </div>
-      <div class="detail__thumbs" role="tablist" aria-label="pictures"></div>
-    </div>
-    <div class="detail__sheet detail__scroll" id="detail-sheet" hidden>
-      <p class="detail__summary"></p>
-      <div data-block="highlights"><h3 class="detail__k">highlights</h3><ul class="detail__list"></ul></div>
+    <!-- scroll down: more about the project in front -->
+    <div class="detail__sheet" id="detail-sheet">
+      <div data-block="summary"><h3 class="detail__k">about</h3><p class="detail__summary"></p></div>
+      <div data-block="highlights"><h3 class="detail__k">what I did</h3><ul class="detail__list"></ul></div>
       <div data-block="tools"><h3 class="detail__k">tools</h3><ul class="detail__tools"></ul></div>
     </div>
   </div>

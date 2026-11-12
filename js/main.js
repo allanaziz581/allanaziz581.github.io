@@ -208,8 +208,14 @@ async function boot() {
   document.fonts?.ready.then(() => { fitTitle(); queueFrameWork(); });
   if (/[?&]layout\b/.test(location.search)) window.__workScreenRect = () => work.screenRect(); // layout checks only
 
-  // --main / --pop (and --accent) follow the project in front, back to streetlight orange outside the work room
+  // --main / --pop (and --accent) follow the project in front, back to streetlight orange outside the work room.
+  // --hi is the one that reads on the dark project page: the pop colour, or the main one when the pop is
+  // too dark (Tesla's near-black)
   let tintKey = '';
+  const lum = (hex) => {
+    const c = [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16) / 255).map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
   function setTint(t) {
     const key = t.main + t.pop;
     if (key === tintKey) return;
@@ -217,6 +223,7 @@ async function boot() {
     root.style.setProperty('--main', t.main);
     root.style.setProperty('--pop', t.pop);
     root.style.setProperty('--accent', t.pop);
+    root.style.setProperty('--hi', lum(t.pop) > 0.12 ? t.pop : t.main);
   }
   function setActive(i) {
     if (i === active) return;
@@ -274,13 +281,17 @@ async function boot() {
   const workVisible = () => sCur > 1.3 && sCur < S.zoomStart && !detail.isOpen;
 
   // ---------- scroll outwards ----------
-  // While a project is open, scrolling or swiping on the scene pulls the camera back out of the
-  // screen. Past PULL_CLOSE it lets go and the project closes; stop sooner and it settles back in.
-  // The panel's own text scrolls first; a wheel at its end (or dragging the phone sheet down from
-  // its top) pulls too.
+  // An open project is a page of its own: scrolling down brings up "more about it" under the strip.
+  // Scrolling up from the top of that page (or swiping down from its top) pulls the camera back out
+  // of the screen; past PULL_CLOSE it lets go and the project closes, stop sooner and it settles
+  // back in. Scrolling down past the end does nothing, and a scroll that has just brought the page back
+  // to the top stops there: zooming out takes a fresh scroll up.
   const PULL_CLOSE = 0.34;
-  const scroller = (t) => t?.closest?.('.detail__scroll') || null; // the bar, the "more" sheet, the editor form
+  const detailView = $('#detail .detail__view');
+  // the project page, or the editor form; the top bar scrolls the page too
+  const scroller = (t) => t?.closest?.('.detail__scroll') || (detailView.hidden ? null : detailView);
   let pull = 0, pullAt = 0, holdUntil = 0, panelScrolledAt = 0, touchY = null, touchX = null, touchPanel = null, touchSide = false;
+  let wheelAt = 0, wheelScrolled = false, touchFromTop = true;
   $('#detail').addEventListener('scroll', () => { panelScrolledAt = performance.now(); }, { passive: true, capture: true });
   function pullBy(amount) {
     pull = Math.min(1, pull + amount);
@@ -300,8 +311,15 @@ async function boot() {
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // sideways: the gallery's slides (js/detail.js)
     const panel = scroller(e.target);
     const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
-    if (panel && (canScroll(panel, dy) || now - panelScrolledAt < 250)) return;
+    if (now - wheelAt > 300) wheelScrolled = false; // a pause: the next wheel is a new gesture
+    wheelAt = now;
+    if (panel && (canScroll(panel, dy) || now - panelScrolledAt < 250)) {
+      wheelScrolled = true;
+      if (!panel.contains(e.target)) { e.preventDefault(); panel.scrollTop += dy; } // a wheel over the top bar
+      return;
+    }
     e.preventDefault();
+    if (panel && (dy > 0 || wheelScrolled)) return; // the end of the page, or the scroll that just got back to the top
     pullBy(Math.min(300, Math.abs(dy)) / 700);
   }, { passive: false });
   addEventListener('touchstart', (e) => {
@@ -309,6 +327,7 @@ async function boot() {
     touchY = e.touches[0].clientY;
     touchX = e.touches[0].clientX;
     touchPanel = scroller(e.target);
+    touchFromTop = !touchPanel || touchPanel.scrollTop <= 0; // only a swipe that starts at the top pulls out
     touchSide = false;
   }, { passive: true });
   addEventListener('touchmove', (e) => {
@@ -322,7 +341,7 @@ async function boot() {
     // a sideways swipe belongs to the gallery (or a time slider), not to the pull
     if (touchSide || Math.abs(dx) > Math.abs(dy)) { touchSide = true; return; }
     touchY = y; touchX = x;
-    if (touchPanel && !(dy > 0 && touchPanel.scrollTop <= 0)) return;
+    if (touchPanel && !(touchFromTop && dy > 0 && touchPanel.scrollTop <= 0)) return;
     e.preventDefault();
     pullBy(Math.abs(dy) / (innerHeight * 0.55));
   }, { passive: false });

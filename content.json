@@ -12,15 +12,43 @@
       "role": [
         "controls engineering",
         "plc / hmi",
-        "ai platform"
+        "ai platform",
+        "machine vision"
       ],
-      "summary": "A summer on a manufacturing controls team at Tesla in Austin. I split the time between the controls themselves (Siemens PLC and HMI software, interlocks, fail-safe behavior) and the tools around them: an AI engineering platform that reads the team's documentation and helps engineers trace and fix equipment problems. The specifics stay with Tesla; this is the shape of the work.",
+      "summary": "A summer on a manufacturing controls team at Tesla in Austin. I split the time between the controls themselves (Siemens PLC and HMI software, interlocks, fail-safe behavior, commissioning and troubleshooting on the line) and the tools around them: an AI engineering platform, its evaluations and a dashboard that help engineers find and fix equipment problems. Production numbers and equipment specifics stay with Tesla.",
       "highlights": [
-        "Built an AI engineering platform for the controls team: document ingestion, semantic retrieval over manuals and programs, labelled debugging traces, and system graphs of how equipment connects.",
-        "Set up versioned evaluations that check AI-generated PLC code against expected equipment behavior and safety constraints before it is used.",
-        "Programmed and commissioned Siemens S7-1500 PLC and HMI logic in TIA Portal (SCL, ladder and function block diagram) with process interlocks and fail-safe behavior.",
-        "Connected plant systems through REST APIs, single sign-on and RFID.",
-        "Troubleshot equipment faults alongside mechanical, electrical and software engineers."
+        {
+          "title": "An AI platform for the controls team",
+          "text": "A Python and C++ platform that takes in the team's documentation, searches it by meaning, and keeps labeled debugging traces and graphs of how the systems connect. It supports code generation, fault classification, schematic tracing and incident diagnosis."
+        },
+        {
+          "title": "Testing the AI before it is trusted",
+          "text": "Versioned evaluations check generated code against how the equipment should behave and its safety constraints, and safety-critical changes go through human review. They caught wrong fault diagnoses and generated changes that left out required interlocks, and those results shaped the next revisions of the platform."
+        },
+        {
+          "title": "A dashboard for the line",
+          "text": "An AI-assisted dashboard that flags abnormal production trends and recurring process faults, and puts the metrics and equipment context beside each flag so engineers can look into possible safety issues."
+        },
+        {
+          "title": "PLC and HMI software",
+          "text": "I wrote and commissioned Siemens S7-1500 PLC and HMI software in TIA Portal, in SCL, ladder and function block diagram: process interlocks, operator workflows, fail-safe controls, multi-axis sequencing, debounce logic and torque control for equipment running in real time."
+        },
+        {
+          "title": "One interface across the lines",
+          "text": "I designed and documented reusable PLC/HMI interfaces and integration specifications: where direct writes or a cyclic abstraction fit, how HMI and IPC network addresses map across several production lines, and a standard way to control the equipment."
+        },
+        {
+          "title": "Plant integrations",
+          "text": "I built and debugged the APIs and sign-in links between plant systems (REST services, single sign-on, RFID badge authentication and identity mapping), and reverse-engineered legacy binaries to trace failures that kept coming back across connected systems."
+        },
+        {
+          "title": "Machine-vision inspection",
+          "text": "I helped commission, calibrate and validate camera-based inspection systems in battery manufacturing, comparing production images against the CAD design and checking parts for defects."
+        },
+        {
+          "title": "Finding the root cause",
+          "text": "When equipment went down I worked with electrical, mechanical, controls and network engineers to find out why, from PLCs, remote I/O, HMIs and industrial networks to safety circuits, power, sensors, cabling and cameras, using schematics, PLC diagnostic buffers, watch tables and live tests."
+        }
       ],
       "tools": [
         "Siemens TIA Portal",
@@ -28,11 +56,15 @@
         "SCL / LAD / FBD",
         "HMI",
         "Python",
+        "C++",
         "LLMs and retrieval",
         "Evaluations",
         "REST",
         "SSO",
-        "RFID"
+        "RFID",
+        "Machine vision",
+        "Industrial networks",
+        "Remote I/O"
       ],
       "links": [],
       "poster": "tesla",
@@ -53,11 +85,26 @@
       ],
       "summary": "I write and produce my own songs, beats and orchestral sketches, and I minor in music technology at Texas A&M. The habits carry over to the engineering: get a rough version down fast, listen hard, and fix whatever doesn't feel right.",
       "highlights": [
-        "Write, arrange and produce in Logic Pro and Ableton Live, from the first idea to a mixed track.",
-        "Orchestral sketches and mockups with Spitfire's BBC Symphony Orchestra for strings, brass and winds.",
-        "Guitar first; MainStage for playing parts live.",
-        "Built my own DSP effects rig for guitar (it's in the engineering projects).",
-        "Minor in Music Technology at Texas A&M University."
+        {
+          "title": "From the first idea to a mix",
+          "text": "I write, arrange and produce in Logic Pro and Ableton Live, taking a song from the first idea to a mixed track."
+        },
+        {
+          "title": "Orchestral sketches",
+          "text": "Strings, brass and winds come from Spitfire's BBC Symphony Orchestra, which I use for orchestral sketches and mockups."
+        },
+        {
+          "title": "Guitar first",
+          "text": "Most of my songs start on guitar. For playing parts live I use MainStage."
+        },
+        {
+          "title": "My own effects rig",
+          "text": "I built my own DSP effects rig for guitar; it has its own page with the engineering projects."
+        },
+        {
+          "title": "Music technology",
+          "text": "I minor in music technology at Texas A&M University."
+        }
       ],
       "tools": [
         "Logic Pro",
@@ -108,12 +155,30 @@
       "desc": "A computer-vision workbench I built: put in an ordinary 2D video and it finds the objects, tracks them and rebuilds the scene in 4D, which is x, y and z plus time.",
       "summary": "A plain 2D video goes in. Object detection finds the subject in every frame, depth models and camera solving lift each frame into 3D, and the frames are joined into one scene you can orbit and scrub through time. Earlier positions stay in the scene as ghosts, so a deer's whole path through the woods shows at once. The demo below comes out of my own pipeline from a single clip, with no 3D scanner and no extra cameras.",
       "highlights": [
-        "4D reconstruction from one ordinary video: the camera path solved, the subject tracked frame by frame, and the scene placed in x, y, z and time.",
-        "Object detection measured on a 1,000-image hold-out: RF-DETR large finds people at 0.878 AP@0.50 in 35 ms a frame on an M5 Max, against 0.489 for the small on-device model.",
-        "Open-vocabulary detection and segmentation (Grounding DINO and SAM) for subjects the stock detectors miss, such as a deer.",
-        "Gaussian splats and per-frame 3D Gaussians for the photoreal version of the scene, trained on the real frames and scored on held-out frames.",
-        "Fully automatic: drop a clip in a folder and the pipeline runs end to end and writes its own report, with no one in the loop.",
-        "Native desktop app in Rust on wgpu with a 4D timeline, orbit, top-down and follow cameras, and manual correction of detections."
+        {
+          "title": "Space and time from one video",
+          "text": "One ordinary video is enough: the camera's path is solved, the subject is tracked frame by frame, and the whole scene is placed in x, y, z and time."
+        },
+        {
+          "title": "Detection, measured",
+          "text": "On a 1,000-image hold-out set, RF-DETR large finds people at 0.878 AP@0.50 in 35 ms a frame on an M5 Max, against 0.489 for the small model that runs on the device."
+        },
+        {
+          "title": "What the stock detectors miss",
+          "text": "For subjects such as a deer, open-vocabulary detection and segmentation (Grounding DINO and SAM) find them and cut them out."
+        },
+        {
+          "title": "The photoreal version",
+          "text": "Gaussian splats and per-frame 3D Gaussians, trained on the real frames and scored on frames held out from training."
+        },
+        {
+          "title": "No one in the loop",
+          "text": "Drop a clip in a folder and the pipeline runs end to end and writes its own report."
+        },
+        {
+          "title": "Its own app",
+          "text": "A native desktop app in Rust on wgpu: a 4D timeline, orbit, top-down and follow cameras, and manual correction of detections."
+        }
       ],
       "tools": [
         "Python",
@@ -205,13 +270,6 @@
           ]
         },
         {
-          "type": "video",
-          "src": "assets/work/fourd/deer-4d.mp4",
-          "poster": "assets/work/fourd/deer-4d.jpg",
-          "alt": "A 2D clip of a deer in a forest fades into the same scene rebuilt in 3D, with the deer's earlier positions left behind as pale ghosts along its path.",
-          "caption": "2D video in, 4D scene out. Source clip: youtube.com/watch?v=Puw5vu22Kqk, used for a non-commercial demo."
-        },
-        {
           "type": "image",
           "src": "assets/work/fourd/dashboard.jpg",
           "alt": "The 4D timeline in the desktop app: view modes, camera modes, the reconstructed forest and a time scrubber at frame 77 of 203.",
@@ -236,10 +294,22 @@
       ],
       "summary": "A wearable I'm building with a small team at Texas A&M: a headset that watches what's coming up behind you and tells you without blocking your ears. It's early, and parts of it stay private until the team is ready, so this is the outline.",
       "highlights": [
-        "Designed custom four-layer circuit boards in KiCad, from schematic through fabrication and assembly.",
-        "Building a sensor node with a camera, radar and a distance sensor; its firmware logs every reading so tests can be replayed.",
-        "Wrote a native Mac app for the computer-vision work: live camera, object detection and a 3D replay of what the sensors saw.",
-        "Designed and 3D-printed enclosures and mounts for the prototypes."
+        {
+          "title": "Circuit boards",
+          "text": "I designed custom four-layer circuit boards in KiCad, from the schematic through fabrication and assembly."
+        },
+        {
+          "title": "A sensor node",
+          "text": "I'm building a sensor node with a camera, radar and a distance sensor; its firmware logs every reading so tests can be replayed."
+        },
+        {
+          "title": "A Mac app for the vision work",
+          "text": "A native Mac app for the computer-vision work: live camera, object detection and a 3D replay of what the sensors saw."
+        },
+        {
+          "title": "Enclosures",
+          "text": "I designed and 3D-printed the enclosures and mounts for the prototypes."
+        }
       ],
       "tools": [
         "KiCad",
@@ -270,11 +340,26 @@
       ],
       "summary": "ThinkFree Finance explains markets for people who don't follow them for a living: renters, hourly workers, small-business owners, students. It reads the news, links it to public records and writes plain-English reports. A language model can state a wrong number as confidently as a right one, so the pipeline checks what it can and labels what it can't.",
       "highlights": [
-        "AI pipeline: news collection, embedding-based clustering, LLM summaries and FAISS retrieval over economic reference texts, built to process over 1,000 articles a day.",
-        "Links politicians, bills, lobbying, congressional trades and public spending using SEC EDGAR, OpenFEC, USASpending, BLS, Census and other public sources.",
-        "Numbers in generated reports are checked against the source data, and summaries that fail are withheld.",
-        "FastAPI website with accounts, MFA, CSRF protection, role-based access and a hash-chained audit log, plus a SwiftUI iPhone app.",
-        "Ran my own security review in October 2026 and logged every bug I found with the test that proves the fix."
+        {
+          "title": "The news pipeline",
+          "text": "News is collected, clustered by embeddings and summarized by a language model, with FAISS retrieval over economic reference texts; it's built to process over 1,000 articles a day."
+        },
+        {
+          "title": "Following the money",
+          "text": "It links politicians, bills, lobbying, congressional trades and public spending, using SEC EDGAR, OpenFEC, USASpending, BLS, Census and other public sources."
+        },
+        {
+          "title": "Checking the numbers",
+          "text": "Numbers in generated reports are checked against the source data, and a summary that fails the check is withheld."
+        },
+        {
+          "title": "Website and app",
+          "text": "A FastAPI website with accounts, MFA, CSRF protection, role-based access and a hash-chained audit log, plus a SwiftUI iPhone app."
+        },
+        {
+          "title": "My own security review",
+          "text": "In October 2026 I ran my own security review and logged every bug I found with the test that proves the fix."
+        }
       ],
       "tools": [
         "Python",
@@ -309,9 +394,18 @@
       ],
       "summary": "A small piece of digital hardware written in OCaml with Jane Street's Hardcaml. Turn a rotary encoder and a PWM output follows, sliding to the new duty cycle over a few periods instead of jumping there. Simulated and tested, with the Verilog generated; a learning project that hasn't been run on an FPGA board yet.",
       "highlights": [
-        "PWM block with interpolation: each new target ramps in over a fixed number of periods and lands exactly, with no rounding error.",
-        "Quadrature decoder for an EC11-style encoder: synchronizers, debouncing, direction from the A and B edges, and clicks only on real detents.",
-        "Waveform tests in simulation for every block, and generated Verilog."
+        {
+          "title": "A PWM that glides",
+          "text": "Each new duty-cycle target ramps in over a fixed number of periods and lands exactly, with no rounding error."
+        },
+        {
+          "title": "Reading the encoder",
+          "text": "A quadrature decoder for an EC11-style rotary encoder: synchronizers, debouncing, direction from the A and B edges, and a click only on a real detent."
+        },
+        {
+          "title": "Tested in simulation",
+          "text": "Every block has waveform tests in simulation, and the Verilog is generated from the OCaml."
+        }
       ],
       "tools": [
         "OCaml",
@@ -344,8 +438,14 @@
       ],
       "summary": "A digital signal-processing effects system for my own guitar. It started on a breadboard and was tested there, and it's the project where the engineering bench and the music meet.",
       "highlights": [
-        "Breadboarded the signal chain from guitar input to processed output.",
-        "Tested it on the bench and by ear."
+        {
+          "title": "On a breadboard",
+          "text": "I breadboarded the signal chain from the guitar input to the processed output."
+        },
+        {
+          "title": "Tested by ear",
+          "text": "I tested it on the bench and by ear."
+        }
       ],
       "tools": [
         "DSP",
@@ -370,9 +470,18 @@
       ],
       "summary": "A virtual-reality game built by the Aggie Coding Club. I was one of its main contributors and built the world the player walks through: the maps, the cave level, and the environment, foliage and grass.",
       "highlights": [
-        "Built the game's maps and its cave level in Unity.",
-        "Environment art: assets, foliage and grass, and the scripts that place them.",
-        "Worked in a club team through Git."
+        {
+          "title": "Maps and the cave",
+          "text": "I built the game's maps and its cave level in Unity."
+        },
+        {
+          "title": "The environment",
+          "text": "The environment art: assets, foliage and grass, and the scripts that place them."
+        },
+        {
+          "title": "A club team",
+          "text": "We worked as a club team through Git."
+        }
       ],
       "tools": [
         "Unity",

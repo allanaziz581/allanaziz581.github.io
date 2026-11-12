@@ -2,7 +2,7 @@
 
 > Mechatronics engineering student at Texas A&M University (minor in music technology, expected December 2027) who builds control systems, embedded hardware and AI tools, and writes and produces music.
 
-Use this file as the plain-text version of https://allanaziz581.github.io/. The page itself is a scroll-driven 3D experience; every fact on it is also in the page's semantic HTML (the `main#content` element) and in its schema.org JSON-LD.
+Use this file as the plain-text version of https://allanaziz.com/. The page itself is a scroll-driven 3D experience; every fact on it is also in the page's semantic HTML (the `main#content` element) and in its schema.org JSON-LD.
 
 ## Identity
 

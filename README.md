@@ -1,6 +1,6 @@
 # Allan Aziz, portfolio
 
-Live at **https://allanaziz581.github.io/**
+Live at **https://allanaziz.com/** (also reachable at https://allanaziz581.github.io/, which redirects there).
 
 Personal site for Allan Aziz: engineering and music. Plain HTML, CSS and JavaScript with Three.js from a CDN. No build step.
 
@@ -67,13 +67,16 @@ The site is served by GitHub Pages straight from the `main` branch of this repos
 
 Before pushing a content change, run `python3 tools/build.py --check`. Leave out `content.json.bak` and anything listed in `.gitignore`. `?edit` is harmless on a static host: without `serve.py` it can only download a copy.
 
-The canonical URL, Open Graph URLs, JSON-LD ids, `llms.txt`, `robots.txt` and the sitemap use `https://allanaziz581.github.io/`.
+The canonical URL, Open Graph URLs, JSON-LD ids, `llms.txt`, `robots.txt` and the sitemap use `https://allanaziz.com/`. The `CNAME` file in the root holds the custom domain; don't delete it, or Pages falls back to the github.io address.
 
-### Moving to allanaziz.com
+### Domain and HTTPS
 
-Only once the domain's DNS points at GitHub (switching first would redirect visitors to a dead address):
+allanaziz.com is registered at Cloudflare. Its DNS points at GitHub Pages, every record set to "DNS only" (grey cloud) so GitHub can issue and renew its Let's Encrypt certificate:
 
-1. At the DNS host for allanaziz.com, add `A` records for the apex (`@`) to `185.199.108.153`, `185.199.109.153`, `185.199.110.153` and `185.199.111.153`, `AAAA` records to `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153` and `2606:50c0:8003::153`, and a `CNAME` for `www` to `allanaziz581.github.io`. On Cloudflare, set them to "DNS only" (grey cloud) until GitHub has issued the certificate. Leave the existing `MX` and `TXT` records alone; they carry the email.
-2. Add a file named `CNAME` containing `allanaziz.com` to the repository root, or set the custom domain under Settings, Pages.
-3. Replace `https://allanaziz581.github.io/` with `https://allanaziz.com/` in `index.html`, `llms.txt`, `robots.txt` and `sitemap.xml`, run `python3 tools/build.py`, and push.
-4. When Settings, Pages shows the certificate, tick "Enforce HTTPS".
+- `A` for `@`: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
+- `AAAA` for `@`: `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`
+- `CNAME` for `www`: `allanaziz581.github.io` (Pages redirects www to the apex)
+
+"Enforce HTTPS" is on under Settings, Pages, so http:// visits are redirected to https://. Everything the page loads (fonts, Three.js, images) comes over https, so browsers show no mixed-content warning. Don't turn on the orange-cloud proxy for these records: GitHub's certificate renewal needs to reach Pages directly.
+
+The `MX`, `TXT` and `sig1._domainkey` records belong to the email address and are separate from the website.

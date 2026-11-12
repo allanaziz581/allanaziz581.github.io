@@ -156,13 +156,15 @@ export function createWork({ lowPower = false, projects = [] } = {}) {
     return s;
   });
 
-  const redraw = (s, t) => { s.draw(s.ctx, TEX_W, TEX_H, t); s.tex.needsUpdate = true; s.drawn = true; };
+  const redraw = (s, t) => { s.draw(s.ctx, TEX_W, TEX_H, t); s.tex.needsUpdate = true; s.drawn = true; s.at = t; };
+  // the screen in front animates its artwork at 30 fps (20 on phones) whatever the display's rate: each
+  // redraw is a full canvas paint plus a texture upload
+  const ART_STEP = lowPower ? 1 / 20 : 1 / 30;
 
   const look = new THREE.Vector2();
   const mouse = new THREE.Vector2();
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
-  let frame = 0;
   let baseZ = 9.5;
   // the front screen sits inside `area` (CSS px, set by main.js from where the list and the info
   // panel are), pulled back far enough to fit it and shifted to its centre with a view offset
@@ -264,7 +266,6 @@ export function createWork({ lowPower = false, projects = [] } = {}) {
     // light: 0..1 the room's lights (the screens glow on their own), faded up on arrival
     update(t, dt, idx, zoom, reduced, focus = 0, light = 1) {
       look.lerp(mouse, 1 - Math.exp(-dt * 3));
-      frame++;
       screens.forEach((s, i) => {
         const d = i - idx;
         const ad = Math.abs(d);
@@ -275,7 +276,7 @@ export function createWork({ lowPower = false, projects = [] } = {}) {
         s.uniforms.uActive.value = 1 - Math.min(1, ad) * 0.75;
         s.uniforms.uTime.value = t;
         const anim = !reduced && ad < 0.5;
-        if (!s.drawn || (anim && frame % 2 === 0)) redraw(s, t);
+        if (!s.drawn || (anim && t - s.at >= ART_STEP)) redraw(s, t);
       });
       const zz = Math.max(THREE.MathUtils.smoothstep(zoom, 0, 1), focus);
       const free = 1 - focus;

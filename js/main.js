@@ -139,6 +139,19 @@ async function boot() {
   let active = -1;
   let focusTarget = 0, focusCur = 0, glitchKick = 0;
   let litWas = ''; // the work room's light, mirrored on its overlay as --lit (css: the list's bands)
+  let pullWas = '', behindN = 0;
+  // Smooth wheel: a mouse wheel or trackpad moves a target and the page glides to it (frame), one
+  // easing for both, while the scene follows the page closely. Touch, keys, the scrollbar and links
+  // stay native; if something else moves the page mid-glide, the glide lets go.
+  const GLIDE = 8; // per second: about 0.4 s to settle after a wheel notch
+  let glideTo = null, glideAt = 0;
+  function glide(e) {
+    if (reduced || e.ctrlKey || root.style.overflow === 'hidden' || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
+    e.preventDefault();
+    if (glideTo === null) glideAt = scrollY;
+    glideTo = clamp((glideTo ?? scrollY) + dy, 0, root.scrollHeight - innerHeight);
+  }
   addEventListener('scroll', () => { sTarget = scrollY / vh; }, { passive: true });
 
   // ---------- overlays ----------
@@ -304,6 +317,7 @@ async function boot() {
   function goto(key, instant) {
     const s = GOTO[key];
     if (s === undefined) return;
+    glideTo = null;
     const top = Math.round(s * vh);
     scrollTo({ top, behavior: instant || reduced ? 'auto' : 'smooth' });
     sTarget = s;
@@ -370,6 +384,7 @@ async function boot() {
     const now = performance.now();
     if (!detail.isOpen) {
       if (now < holdUntil) { e.preventDefault(); holdUntil = now + 320; }
+      else glide(e);
       return;
     }
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // sideways: the gallery's slides (js/detail.js)
@@ -534,8 +549,19 @@ async function boot() {
     last = now;
     if (introStart < 0) introStart = now;
 
+    if (glideTo !== null) {
+      if (Math.abs(scrollY - glideAt) > 2) glideTo = null; // keys, the scrollbar or a link moved the page
+      else {
+        let y = glideAt + (glideTo - glideAt) * (1 - Math.exp(-dt * GLIDE));
+        if (Math.abs(glideTo - y) < 0.5) y = glideTo;
+        scrollTo({ top: y, behavior: 'auto' });
+        glideAt = y;
+        if (y === glideTo) glideTo = null;
+      }
+    }
     sPrev = sCur;
-    sCur += (sTarget - sCur) * (1 - Math.exp(-dt * (reduced ? 20 : 7)));
+    // the scene eases after the page; a gliding page is already eased, so then it follows closely
+    sCur += (sTarget - sCur) * (1 - Math.exp(-dt * (reduced ? 20 : glideTo !== null ? 24 : 7)));
     if (Math.abs(sTarget - sCur) < 1e-4) sCur = sTarget;
     const s = sCur;
     const vel = (s - sPrev) / dt;
@@ -550,7 +576,8 @@ async function boot() {
     // scroll outwards: the pull eases back to nothing once the wheel or finger stops
     if (pull > 0 && (!detail.isOpen || performance.now() - pullAt > 180)) pull *= Math.exp(-dt * (detail.isOpen ? 7 : 30));
     if (pull < 1e-3) pull = 0;
-    root.style.setProperty('--pull', pull.toFixed(3));
+    const pullS = pull.toFixed(3);
+    if (pullS !== pullWas) { pullWas = pullS; root.style.setProperty('--pull', pullS); }
     const fTarget = focusTarget * (1 - pull);
     focusCur = reduced ? fTarget : focusCur + (fTarget - focusCur) * (1 - Math.exp(-dt * (pull > 0 ? 9 : 3.4)));
     if (Math.abs(fTarget - focusCur) < 1e-3) focusCur = fTarget;
@@ -560,27 +587,32 @@ async function boot() {
     const tunnelP = clamp((s - S.cut) / (S.tunnelEnd - S.cut), 0, 1);
     const contactP = clamp((s - S.tunnelEnd) / (S.max - S.tunnelEnd), 0, 1);
 
-    // which scenes draw
-    let A, B = null, mix = 0;
-    if (s < 0.95) { A = hero; applyLook(LOOK.hero, LOOK.hero, 0); }
-    else if (s < 1.3) { A = hero; B = work; mix = sstep(0.95, 1.28, s); applyLook(LOOK.hero, LOOK.work, mix); }
-    else if (s < S.cut - 0.06) { A = work; applyLook(LOOK.work, LOOK.work, 0); }
-    else if (s < S.cut + 0.3) { A = work; B = tunnel; mix = sstep(S.cut - 0.05, S.cut + 0.08, s); applyLook(LOOK.work, LOOK.tunnel, mix); }
-    else { A = tunnel; applyLook(LOOK.tunnel, LOOK.tunnel, 0); }
+    // an open project covers the room with its dark page: once settled, the room behind draws at a
+    // quarter rate (it still shows faintly, so it doesn't stop)
+    const behind = detail.isOpen && focusCur === 1 && pull === 0 && glitchKick === 0;
+    if (!behind || behindN++ % 4 === 0) {
+      // which scenes draw
+      let A, B = null, mix = 0;
+      if (s < 0.95) { A = hero; applyLook(LOOK.hero, LOOK.hero, 0); }
+      else if (s < 1.3) { A = hero; B = work; mix = sstep(0.95, 1.28, s); applyLook(LOOK.hero, LOOK.work, mix); }
+      else if (s < S.cut - 0.06) { A = work; applyLook(LOOK.work, LOOK.work, 0); }
+      else if (s < S.cut + 0.3) { A = work; B = tunnel; mix = sstep(S.cut - 0.05, S.cut + 0.08, s); applyLook(LOOK.work, LOOK.tunnel, mix); }
+      else { A = tunnel; applyLook(LOOK.tunnel, LOOK.tunnel, 0); }
 
-    const intro = reduced ? 1 : clamp((now - introStart) / 2.4, 0, 1);
-    if (A === hero || B === hero) { hero.uniforms.uIntro.value = 1 - Math.pow(1 - intro, 3); hero.update(now, dt, clamp(s, 0, 1.3), reduced); }
-    if (A === work || B === work) work.update(now, dt, idx, zoom, reduced, focus, roomLight(s));
-    if (A === tunnel || B === tunnel) tunnel.update(now, dt, tunnelP, contactP, reduced);
+      const intro = reduced ? 1 : clamp((now - introStart) / 2.4, 0, 1);
+      if (A === hero || B === hero) { hero.uniforms.uIntro.value = 1 - Math.pow(1 - intro, 3); hero.update(now, dt, clamp(s, 0, 1.3), reduced); }
+      if (A === work || B === work) work.update(now, dt, idx, zoom, reduced, focus, roomLight(s));
+      if (A === tunnel || B === tunnel) tunnel.update(now, dt, tunnelP, contactP, reduced);
 
-    glitchKick = Math.max(0, glitchKick - dt * 3);
-    U.uTime.value = now;
-    // hero -> work: no flash; the room starts dark (only the screens glow) and its lights come up
-    U.uFlash.value = 0;
-    U.uFade.value = bump(s, S.cut, 0.12) * 0.95 + contactP * 0.45;
-    const g = reduced ? 0 : Math.abs(vel) * 0.25 + bump(s, 1.0, 0.18) + bump(s, S.cut, 0.18) * 1.2 + glitchKick * 0.8 + bump(focusCur, 0.5, 0.35) * 0.25;
-    U.uGlitch.value = clamp(g, 0, 1);
-    post.render(A, B, mix);
+      glitchKick = Math.max(0, glitchKick - dt * 3);
+      U.uTime.value = now;
+      // hero -> work: no flash; the room starts dark (only the screens glow) and its lights come up
+      U.uFlash.value = 0;
+      U.uFade.value = bump(s, S.cut, 0.12) * 0.95 + contactP * 0.45;
+      const g = reduced ? 0 : Math.abs(vel) * 0.25 + bump(s, 1.0, 0.18) + bump(s, S.cut, 0.18) * 1.2 + glitchKick * 0.8 + bump(focusCur, 0.5, 0.35) * 0.25;
+      U.uGlitch.value = clamp(g, 0, 1);
+      post.render(A, B, mix);
+    }
 
     // overlays
     setOverlay(ov.hero, 1 - sstep(0.12, 0.5, s));

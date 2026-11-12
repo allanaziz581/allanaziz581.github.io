@@ -188,12 +188,12 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
   }
   const ensure = (s) => { if (!s.loaded) { s.loaded = true; s.load(); } };
 
-  // place every slide on the drum; returns true while artwork in view is animating
-  function layout(now) {
+  // place every slide on the drum (only when the strip moves or the window changes size)
+  let placedAt = NaN;
+  function layout() {
     G = geom();
     gallery.style.perspective = `${G.persp}px`;
     track.style.setProperty('--gap', `${G.gap / 2}px`);
-    let live = false;
     strip.forEach((s, i) => {
       const d = rel(i, pos), a = Math.abs(d);
       if (a < 3.6) ensure(s);
@@ -203,9 +203,18 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
       s.el.style.height = `${G.h}px`;
       s.el.style.transform = `translate(-50%, -50%) translateZ(${-G.R}px) rotateY(${d * G.a}rad) translateZ(${G.R}px)`;
       s.el.style.setProperty('--dim', (Math.min(a, 2) * 0.14).toFixed(3));
-      if (s.paint && a < 1.6 && !reduceMotion) { s.paint(now / 1000); live = true; }
     });
-    return live;
+    placedAt = pos;
+  }
+  // the artwork in front animates at up to 30 fps while the strip is on screen (the ones either side
+  // keep the frame they had); returns true while it does
+  let paintedAt = 0;
+  function paintFront(now) {
+    if (reduceMotion || view.scrollTop > gallery.offsetTop + gallery.offsetHeight) return false;
+    const s = strip[mod(Math.round(pos), strip.length)];
+    if (!s?.paint) return false;
+    if (now - paintedAt >= 32) { s.paint(now / 1000); paintedAt = now; }
+    return true;
   }
 
   function tick(now) {
@@ -216,10 +225,12 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
     if (!drag) pos += (target - pos) * (1 - Math.exp(-dt * 9));
     if (Math.abs(target - pos) < 0.0005) pos = target;
     if (!drag && pos === target && Math.abs(pos) > strip.length * 4) { const k = Math.round(pos / strip.length) * strip.length; pos -= k; target -= k; }
-    const live = layout(now);
+    if (pos !== placedAt) layout();
+    const live = paintFront(now);
     if (drag || pos !== target || live) raf = requestAnimationFrame(tick);
   }
   const kick = () => { if (!raf && open) { last = 0; raf = requestAnimationFrame(tick); } };
+  view.addEventListener('scroll', kick, { passive: true }); // back up to the strip: its artwork moves again
 
   // the slide nearest the target is in front: it plays, it is the one screen readers see, and its
   // project fills the bar along the bottom
@@ -331,7 +342,7 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
   }, { passive: false });
   prevPic.addEventListener('click', () => moveBy(-1));
   nextPic.addEventListener('click', () => moveBy(1));
-  addEventListener('resize', () => { if (open && !edit) layout(performance.now()); });
+  addEventListener('resize', () => { if (open && !edit) layout(); });
 
   // "> more about it" is just further down the page: scrolling down (or this button) brings it up
   const scrollView = (top) => view.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
@@ -476,7 +487,7 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
       requestAnimationFrame(() => el.classList.add('is-open'));
       closeBtn.focus({ preventScroll: true });
     }
-    if (!edit) layout(performance.now());
+    if (!edit) layout();
     kick();
     onOpen(i);
   }

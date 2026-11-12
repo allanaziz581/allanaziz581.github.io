@@ -1,8 +1,8 @@
 // Project detail view (opened by clicking the front screen) and the in-page editor (?edit).
 //
-// View mode is a full-screen gallery: a row of slides (the entry's pictures, videos and frame
-// sequences, or its screen artwork), with project, info and role along the bottom and the summary,
-// highlights and tools behind "> more about it".
+// View mode is a full-screen strip of slides that loops through every project (each one's screen
+// artwork, then its pictures, videos and frame sequences), with project, info and role along the
+// bottom for the slide in front and the summary, highlights and tools behind "> more about it".
 // Edit mode turns the same dialog into a form bound to content.json; "save" posts to
 // tools/serve.py (localhost only), which writes content.json and rebuilds the readable layer,
 // JSON-LD and llms.txt. Without that server, save downloads content.json instead.
@@ -58,53 +58,70 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
   const hlBlock = $('[data-block="highlights"]', el), toolBlock = $('[data-block="tools"]', el);
   const gallery = $('.detail__gallery', el), track = $('.detail__track', el), thumbs = $('.detail__thumbs', el), cap = $('.detail__cap', el);
   const prevPic = $('.detail__arrow--prev', el), nextPic = $('.detail__arrow--next', el);
-  const more = $('.detail__more', el), sheet = $('.detail__sheet', el);
+  const more = $('.detail__more', el), sheet = $('.detail__sheet', el), infoBar = $('.detail__bar', el);
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let cur = -1, open = false, lastFocus = null, dirty = false, hideTimer = 0;
 
   const pad = (i) => String(i + 1).padStart(2, '0');
 
-  // ---------- the slide gallery ----------
-  // Every project gets a row of big slides: its pictures, videos and frame sequences from content.json
-  // ("media"), or its screen artwork drawn live when it has none. The slide in front is flat and full
-  // size; its neighbours lean in at the sides. Drag, swipe sideways, the arrow keys, the side slides or
-  // the thumbnails move along the row; past either end the arrow keys move on to the next project.
-  let slides = [], pos = 0, target = 0, raf = 0, last = 0;
-  let drag = null; // { id, x, pos, moved, t, v }
+  // ---------- the strip ----------
+  // One continuous strip runs through every project: each one's screen artwork first (the picture on
+  // the screen the camera just dove into), then its pictures, videos and frame sequences from
+  // content.json ("media"). The strip is wrapped round a wide drum and loops, so there are always
+  // slides at both sides, and sliding along it runs straight on from one project into the next; the
+  // project, info and role along the bottom follow whichever slide is in front. Drag, swipe or scroll
+  // sideways, the arrow keys, a side slide or a thumbnail move along it.
+  const strip = [], byProj = [];
+  let pos = 0, target = 0, front = -1, raf = 0, last = 0, built = false, quiet = false;
+  let drag = null; // { id, x, pos, moved, t, v, last }
+  let G = null;    // the drum's measurements, from geom()
 
-  function slideSize() {
+  const mod = (a, n) => ((a % n) + n) % n;
+  const rel = (i, x) => mod(i - x + strip.length / 2, strip.length) - strip.length / 2; // signed distance round the loop
+
+  function geom() {
     const r = gallery.getBoundingClientRect();
-    const w = Math.max(160, Math.min(r.width * (innerWidth < 768 ? 0.84 : 0.56), r.height * 16 / 9));
-    return { w, step: w * 1.07 };
+    const mobile = innerWidth < 768;
+    const w = Math.max(160, Math.min(r.width * (mobile ? 0.78 : 0.44), r.height * 0.9 * 16 / 9));
+    const gap = Math.round(Math.max(8, w * 0.05));
+    const pitch = w + gap;                  // along the drum, from one slide's middle to the next
+    const R = pitch / (mobile ? 0.2 : 0.15); // drum radius: about 9 degrees per slide on a desktop
+    const a = pitch / R;
+    const persp = Math.round(Math.max(900, w * 2.6));
+    const px = (R * Math.sin(a) * persp) / (persp + R - R * Math.cos(a)); // on-screen distance to the next slide
+    return { w, h: w * 9 / 16, gap, R, a, chord: 2 * R * Math.sin(a / 2), persp, px };
+  }
+
+  function shell(cls) {
+    const s = document.createElement('div');
+    s.className = `detail__slide ${cls}`.trim();
+    const pic = Object.assign(document.createElement('div'), { className: 'detail__pic' });
+    s.append(pic);
+    return { s, pic };
   }
 
   function mediaSlide(m) {
-    const s = document.createElement('div');
-    s.className = 'detail__slide';
+    const { s, pic } = shell(m.type === 'frames' ? 'is-frames' : '');
     if (m.type === 'video') {
       const v = document.createElement('video');
-      v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'metadata';
+      v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'none';
       v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
-      if (m.poster) v.poster = m.poster;
       v.setAttribute('aria-label', m.alt);
       if (reduceMotion) v.controls = true;
-      v.src = m.src;
-      s.append(v);
-      return { el: s, m, video: v };
+      pic.append(v);
+      return { el: s, m, video: v, load() { if (m.poster) v.poster = m.poster; v.preload = 'metadata'; v.src = m.src; } };
     }
-    const img = Object.assign(document.createElement('img'), { alt: m.alt, decoding: 'async', draggable: false, src: m.type === 'frames' ? m.frames[0].src : m.src });
-    s.append(img);
-    if (m.type !== 'frames') return { el: s, m };
+    const img = Object.assign(document.createElement('img'), { alt: m.alt, decoding: 'async', draggable: false });
+    pic.append(img);
+    if (m.type !== 'frames') return { el: s, m, load() { img.src = m.src; } };
     // a frame sequence: drag across the picture (or the slider under it) to move through time
-    s.classList.add('is-frames');
-    m.frames.forEach((f) => { new Image().src = f.src; });
     const bar = document.createElement('div');
     bar.className = 'detail__scrub';
     const range = Object.assign(document.createElement('input'), { type: 'range', min: '0', max: String(m.frames.length - 1), step: '1', value: '0', className: 'detail__range' });
     range.setAttribute('aria-label', 'time');
     const lab = Object.assign(document.createElement('span'), { className: 'detail__frame-label' });
     bar.append(range, lab);
-    s.append(bar);
+    pic.append(bar);
     const slide = { el: s, m, img, range, lab };
     slide.setFrame = (k) => {
       k = Math.max(0, Math.min(m.frames.length - 1, k | 0));
@@ -113,12 +130,12 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
       lab.textContent = m.frames[k].label || `${k + 1} / ${m.frames.length}`;
       range.setAttribute('aria-valuetext', lab.textContent);
     };
-    slide.setFrame(0);
+    slide.load = () => { m.frames.forEach((f) => { new Image().src = f.src; }); slide.setFrame(0); };
     range.addEventListener('input', () => slide.setFrame(+range.value));
     const at = (e) => { const r = img.getBoundingClientRect(); return Math.round(((e.clientX - r.left) / r.width) * (m.frames.length - 1)); };
     let scrubbing = null;
     img.addEventListener('pointerdown', (e) => {
-      if (slides[target] !== slide) return;
+      if (strip[front] !== slide) return;
       e.stopPropagation();
       scrubbing = e.pointerId;
       img.setPointerCapture(e.pointerId);
@@ -132,89 +149,118 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
     return slide;
   }
 
+  // the screen artwork, drawn live at the slide's 16:9 (the posters lay themselves out to the width)
   function posterSlide(p) {
-    const s = document.createElement('div');
-    s.className = 'detail__slide detail__slide--poster';
-    const c = Object.assign(document.createElement('canvas'), { width: poster.w, height: poster.h });
+    const { s, pic } = shell('detail__slide--poster');
+    const H = poster.h, W = Math.round(H * 16 / 9);
+    const c = Object.assign(document.createElement('canvas'), { width: W, height: H });
     c.setAttribute('role', 'img');
     c.setAttribute('aria-label', `${p.title}: the project's screen artwork`);
-    s.append(c);
+    pic.append(c);
     const draw = poster.draw(p);
     const ctx = c.getContext('2d');
-    draw(ctx, c.width, c.height, 0);
-    return { el: s, m: { type: 'poster', alt: c.getAttribute('aria-label') }, canvas: c, paint: (t) => draw(ctx, c.width, c.height, t) };
+    const paint = (t) => draw(ctx, W, H, t);
+    return { el: s, m: { type: 'poster', alt: c.getAttribute('aria-label') }, canvas: c, paint, load() { paint(0); } };
   }
 
-  function layout(now) {
-    const { w, step } = slideSize();
-    const mobile = innerWidth < 768;
-    slides.forEach((s, i) => {
-      const d = i - pos, a = Math.abs(d);
-      const x = d * step;
-      const rot = Math.max(-1.6, Math.min(1.6, d)) * (mobile ? 8 : 13);
-      const sc = 1 - Math.min(a, 2) * 0.05;
-      s.el.style.width = `${w}px`;
-      s.el.style.transform = `translate(-50%, -50%) translateX(${x}px) rotateY(${rot}deg) scale(${sc})`;
-      s.el.style.opacity = String(a > 2.6 ? 0 : 1 - Math.min(a, 1) * 0.42);
-      s.el.style.zIndex = String(100 - Math.round(a * 10));
-      s.el.style.visibility = a > 2.6 ? 'hidden' : '';
+  function build() {
+    built = true;
+    strip.length = 0; byProj.length = 0;
+    P.forEach((p, i) => {
+      const items = [posterSlide(p), ...(p.media || []).map(mediaSlide)];
+      byProj[i] = [];
+      items.forEach((s, k) => {
+        Object.assign(s, { p: i, k, loaded: false });
+        s.el.setAttribute('role', 'group');
+        s.el.setAttribute('aria-roledescription', 'slide');
+        s.el.setAttribute('aria-label', `${p.title}, ${k + 1} of ${items.length}`);
+        byProj[i].push(strip.length);
+        strip.push(s);
+      });
     });
-    const front = slides[target];
-    if (front?.paint && !reduceMotion) front.paint(now / 1000);
+    track.replaceChildren(...strip.map((s) => s.el));
+  }
+  const ensure = (s) => { if (!s.loaded) { s.loaded = true; s.load(); } };
+
+  // place every slide on the drum; returns true while artwork in view is animating
+  function layout(now) {
+    G = geom();
+    gallery.style.perspective = `${G.persp}px`;
+    track.style.setProperty('--gap', `${G.gap / 2}px`);
+    let live = false;
+    strip.forEach((s, i) => {
+      const d = rel(i, pos), a = Math.abs(d);
+      if (a < 3.6) ensure(s);
+      if (a > 2.6) { s.el.style.visibility = 'hidden'; return; }
+      s.el.style.visibility = '';
+      s.el.style.width = `${G.chord + 1}px`;
+      s.el.style.height = `${G.h}px`;
+      s.el.style.transform = `translate(-50%, -50%) translateZ(${-G.R}px) rotateY(${d * G.a}rad) translateZ(${G.R}px)`;
+      s.el.style.setProperty('--dim', (Math.min(a, 2) * 0.14).toFixed(3));
+      if (s.paint && a < 1.6 && !reduceMotion) { s.paint(now / 1000); live = true; }
+    });
+    return live;
   }
 
   function tick(now) {
     raf = 0;
-    if (!open || !slides.length) return;
+    if (!open || !strip.length) return;
     const dt = Math.min(0.05, (now - (last || now)) / 1000);
     last = now;
-    if (!drag) pos += (target - pos) * (1 - Math.exp(-dt * 11));
+    if (!drag) pos += (target - pos) * (1 - Math.exp(-dt * 9));
     if (Math.abs(target - pos) < 0.0005) pos = target;
-    layout(now);
-    const busy = drag || pos !== target || slides[target]?.paint;
-    if (busy) raf = requestAnimationFrame(tick);
+    if (!drag && pos === target && Math.abs(pos) > strip.length * 4) { const k = Math.round(pos / strip.length) * strip.length; pos -= k; target -= k; }
+    const live = layout(now);
+    if (drag || pos !== target || live) raf = requestAnimationFrame(tick);
   }
   const kick = () => { if (!raf && open) { last = 0; raf = requestAnimationFrame(tick); } };
 
-  function goSlide(k, instant = false) {
-    if (!slides.length) return;
-    k = Math.max(0, Math.min(slides.length - 1, k));
-    target = k;
-    if (instant) pos = k;
-    slides.forEach((s, i) => {
-      const on = i === k;
+  // the slide nearest the target is in front: it plays, it is the one screen readers see, and its
+  // project fills the bar along the bottom
+  function syncFront() {
+    if (!strip.length) return;
+    const f = mod(Math.round(target), strip.length);
+    if (f === front) return;
+    front = f;
+    strip.forEach((s, i) => {
+      const on = i === f;
       s.el.setAttribute('aria-hidden', String(!on));
       s.el.classList.toggle('is-front', on);
-      if (s.video) { if (on && !reduceMotion) s.video.play().catch(() => {}); else s.video.pause(); }
+      if (s.video) { if (on && !reduceMotion) { ensure(s); s.video.play().catch(() => {}); } else s.video.pause(); }
       s.el.querySelectorAll('input').forEach((x) => { x.tabIndex = on ? 0 : -1; });
     });
-    const m = slides[k].m;
-    cap.textContent = m.caption || '';
-    cap.hidden = !m.caption;
-    [...thumbs.children].forEach((b, j) => b.setAttribute('aria-selected', String(j === k)));
-    prevPic.disabled = k === 0;
-    nextPic.disabled = k === slides.length - 1;
+    const s = strip[f];
+    cap.textContent = s.m.caption || '';
+    cap.hidden = !s.m.caption;
+    if (s.p !== cur) setProject(s.p);
+    [...thumbs.children].forEach((b, j) => b.setAttribute('aria-selected', String(j === s.k)));
+  }
+  function goSlide(g, instant = false) {
+    if (!strip.length) return;
+    const base = Math.round(target);
+    target = base + rel(g, base);
+    if (instant) pos = target;
+    syncFront();
     kick();
   }
+  const moveBy = (k) => { target = Math.round(target) + k; syncFront(); kick(); };
 
-  function stopMedia() { slides.forEach((s) => s.video?.pause()); }
+  function stopMedia() { strip.forEach((s) => s.video?.pause()); }
 
-  function fillGallery(p) {
-    stopMedia();
-    const items = p.media || [];
-    slides = items.length ? items.map(mediaSlide) : [posterSlide(p)];
-    track.replaceChildren(...slides.map((s, i) => {
-      s.el.setAttribute('role', 'group');
-      s.el.setAttribute('aria-roledescription', 'slide');
-      s.el.setAttribute('aria-label', `${i + 1} of ${slides.length}`);
-      return s.el;
-    }));
-    thumbs.replaceChildren(...slides.map((s, j) => {
+  function setProject(i) {
+    cur = i;
+    header(i);
+    fillText(i);
+    const ids = byProj[i];
+    thumbs.hidden = ids.length < 2;
+    thumbs.replaceChildren(...ids.map((g, j) => {
+      const s = strip[g];
       const b = Object.assign(document.createElement('button'), { type: 'button', className: 'detail__thumb' });
       b.setAttribute('role', 'tab');
-      b.setAttribute('aria-label', `picture ${j + 1} of ${slides.length}: ${s.m.alt}`);
+      b.setAttribute('aria-label', `picture ${j + 1} of ${ids.length}: ${s.m.alt}`);
       if (s.canvas) {
-        const c = Object.assign(document.createElement('canvas'), { width: 160, height: Math.round(160 * poster.h / poster.w) });
+        ensure(s);
+        const c = Object.assign(document.createElement('canvas'), { width: 160, height: 90 });
         c.getContext('2d').drawImage(s.canvas, 0, 0, c.width, c.height);
         b.append(c);
       } else {
@@ -222,29 +268,31 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
       }
       const tag = s.m.type === 'frames' ? 'drag' : s.m.type === 'video' ? 'video' : '';
       if (tag) b.append(Object.assign(document.createElement('span'), { className: 'detail__thumb-tag', textContent: tag }));
-      b.addEventListener('click', () => goSlide(j));
+      b.addEventListener('click', () => goSlide(g));
       return b;
     }));
-    gallery.classList.toggle('is-single', slides.length < 2);
-    goSlide(0, true);
-    layout(performance.now());
+    if (quiet) return;
+    // the strip ran on into another project: keep the room, the address and the bar with it
+    onGo(i);
+    onOpen(i);
+    if (!reduceMotion) infoBar.animate([{ opacity: 0.25 }, { opacity: 1 }], { duration: 320, easing: 'ease-out' });
   }
 
-  // dragging the row (a frame sequence in front scrubs instead: see mediaSlide)
+  // dragging the strip (a frame sequence in front scrubs instead: see mediaSlide)
   gallery.addEventListener('pointerdown', (e) => {
-    if (!slides.length || e.button > 0 || e.target.closest('button, input')) return;
+    if (!strip.length || e.button > 0 || e.target.closest('button, input')) return;
     drag = { id: e.pointerId, x: e.clientX, pos, moved: 0, t: performance.now(), v: 0, last: e.clientX };
     gallery.setPointerCapture(e.pointerId);
     kick();
   });
   gallery.addEventListener('pointermove', (e) => {
     if (!drag || drag.id !== e.pointerId) return;
-    const { step } = slideSize();
     const now = performance.now();
     drag.v = 0.8 * drag.v + 0.2 * ((e.clientX - drag.last) / Math.max(1, now - drag.t));
     drag.t = now; drag.last = e.clientX;
     drag.moved = Math.max(drag.moved, Math.abs(e.clientX - drag.x));
-    pos = Math.max(-0.35, Math.min(slides.length - 0.65, drag.pos - (e.clientX - drag.x) / step));
+    pos = target = drag.pos - (e.clientX - drag.x) / (G?.px || 400);
+    syncFront();
     kick();
   });
   function endDrag(e) {
@@ -253,29 +301,31 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
     drag = null;
     if (d.moved < 6) {
       // a click: on a side slide it brings that slide to the front
-      const hit = slides.findIndex((s) => s.el.contains(document.elementFromPoint(e.clientX, e.clientY)));
-      goSlide(hit >= 0 ? hit : target);
+      const hit = strip.findIndex((s) => s.el.contains(document.elementFromPoint(e.clientX, e.clientY)));
+      goSlide(hit >= 0 ? hit : front);
       return;
     }
-    const { step } = slideSize();
-    goSlide(Math.round(pos - (d.v * 180) / step));
+    target = Math.round(pos - (d.v * 180) / (G?.px || 400));
+    syncFront();
+    kick();
   }
   gallery.addEventListener('pointerup', endDrag);
   gallery.addEventListener('pointercancel', endDrag);
-  // a sideways wheel or trackpad swipe moves along the row (main.js leaves sideways wheels to us)
-  let wheelAcc = 0, wheelAt = 0;
+  // a sideways wheel or trackpad swipe glides along the strip and settles on the nearest slide
+  // (main.js leaves sideways wheels to us and pulls out on vertical ones)
+  let wheelSnap = 0;
   el.addEventListener('wheel', (e) => {
     if (!open || edit || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     e.preventDefault();
-    const now = performance.now();
-    if (now - wheelAt > 350) wheelAcc = 0;
-    wheelAt = now;
-    wheelAcc += e.deltaX;
-    if (Math.abs(wheelAcc) > 70) { goSlide(target + Math.sign(wheelAcc)); wheelAcc = -Math.sign(wheelAcc) * 400; }
+    target += e.deltaX / ((G?.px || 400) * 0.9);
+    syncFront();
+    kick();
+    clearTimeout(wheelSnap);
+    wheelSnap = setTimeout(() => { target = Math.round(target); syncFront(); kick(); }, 140);
   }, { passive: false });
-  prevPic.addEventListener('click', () => goSlide(target - 1));
-  nextPic.addEventListener('click', () => goSlide(target + 1));
-  addEventListener('resize', () => { if (open) { layout(performance.now()); } });
+  prevPic.addEventListener('click', () => moveBy(-1));
+  nextPic.addEventListener('click', () => moveBy(1));
+  addEventListener('resize', () => { if (open && !edit) layout(performance.now()); });
 
   function setSheet(on) {
     sheet.hidden = !on;
@@ -285,7 +335,13 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
   }
   more.addEventListener('click', () => setSheet(sheet.hidden));
 
-  function fillView(i) {
+  function header(i) {
+    num.textContent = `[${pad(i)}]`;
+    cat.textContent = P[i].category || '';
+    count.textContent = `${pad(i)} / ${pad(P.length - 1)}`;
+  }
+
+  function fillText(i) {
     const p = P[i];
     title.textContent = p.title;
     sub.textContent = p.subtitle || '';
@@ -309,7 +365,6 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
     }));
     links.hidden = !(p.links || []).length;
     setSheet(false);
-    fillGallery(p);
   }
 
   function fillForm(i) {
@@ -375,13 +430,14 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
 
 
   function show(i) {
-    cur = i;
-    num.textContent = `[${pad(i)}]`;
-    cat.textContent = P[i].category || '';
-    count.textContent = `${pad(i)} / ${pad(P.length - 1)}`;
     view.hidden = !!edit;
     form.hidden = !edit;
-    if (edit) { fillForm(i); form.scrollTop = 0; } else fillView(i);
+    if (edit) { cur = i; header(i); fillForm(i); form.scrollTop = 0; return; }
+    if (!built) build();
+    front = -1; cur = -1;
+    quiet = true;
+    goSlide(byProj[i][0], true);
+    quiet = false;
   }
 
   function openAt(i) {
@@ -395,7 +451,7 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
       requestAnimationFrame(() => el.classList.add('is-open'));
       closeBtn.focus({ preventScroll: true });
     }
-    if (!edit) goSlide(target, true);
+    if (!edit) layout(performance.now());
     kick();
     onOpen(i);
   }
@@ -412,12 +468,14 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
     onClose(cur);
   }
 
+  // "< prev" / "next >": on to the first slide of the project before or after (the editor's form
+  // just switches project)
   function step(d) {
-    const j = (cur + d + P.length) % P.length;
+    const j = mod(cur + d, P.length);
+    if (!edit) { goSlide(byProj[j][0]); return; }
     onGo(j);
     show(j);
     onOpen(j);
-    kick();
   }
 
   closeBtn.addEventListener('click', close);
@@ -435,8 +493,7 @@ export function createDetail({ content, posterKeys, poster, edit, onOpen, onClos
     if (!typing && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
       e.preventDefault();
       const d = e.key === 'ArrowRight' ? 1 : -1;
-      // along this project's slides first, then on to the next project
-      if (!edit && target + d >= 0 && target + d < slides.length) goSlide(target + d); else step(d);
+      if (edit) step(d); else moveBy(d);
       return;
     }
     if (e.key === 'Tab') {

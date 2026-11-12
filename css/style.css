@@ -334,8 +334,9 @@ a, button, label, html.over-screen #gl { cursor: var(--cur-link); }
 .work__open:hover { background: var(--main, var(--ink)); color: #fff; text-decoration: none; box-shadow: 0 0 0 3px var(--main, var(--ink)); }
 
 /* ---------- project detail: a full-screen gallery ---------- */
-/* a row of big slides (the project's pictures, or its screen artwork), project / info / role along
-   the bottom with thumbnails, "> close <" at the top; js/detail.js places the slides */
+/* one strip of slides on a wide drum, looping through every project (screen artwork, then pictures),
+   project / info / role along the bottom with thumbnails, "> close <" at the top; js/detail.js
+   places the slides */
 .detail {
   position: fixed; inset: 0; z-index: 800;
   display: grid; grid-template-rows: auto minmax(0, 1fr);
@@ -370,21 +371,23 @@ a, button, label, html.over-screen #gl { cursor: var(--cur-link); }
 .detail__view { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; grid-template-columns: minmax(0, 1fr); min-height: 0; }
 .detail__view[hidden] { display: none; }
 .detail__gallery {
-  grid-row: 1; grid-column: 1; position: relative; min-height: 0; overflow: hidden;
+  grid-row: 1; grid-column: 1; position: relative; min-height: 0; overflow: hidden; margin: 0 calc(-1 * var(--gutter));
   perspective: 1700px; touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: grab;
 }
 .detail__gallery:active { cursor: grabbing; }
-.detail__track { position: absolute; inset: 0; transform-style: preserve-3d; }
+/* the track's own plane sits in front of the receding side slides, so it lets clicks through to them */
+.detail__track { position: absolute; inset: 0; transform-style: preserve-3d; pointer-events: none; }
+/* each slide is a panel of one continuous dark band; the picture sits in it with a thin gap either side */
 .detail__slide {
-  position: absolute; left: 50%; top: 50%; aspect-ratio: 16 / 9; background: #000;
-  box-shadow: 0 22px 60px rgba(0, 0, 0, .55); will-change: transform;
+  position: absolute; left: 50%; top: 50%; background: #111115; backface-visibility: hidden; will-change: transform; pointer-events: auto;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .07), inset 0 -1px rgba(255, 255, 255, .07);
 }
-.detail__slide.is-front { box-shadow: 0 0 0 1px rgba(255, 255, 255, .22), 0 26px 70px rgba(0, 0, 0, .6); }
-.detail__slide img, .detail__slide video, .detail__slide canvas { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.detail__pic { position: absolute; top: 0; bottom: 0; left: var(--gap, 12px); right: var(--gap, 12px); overflow: hidden; background: #000; }
+.detail__pic::after { content: ""; position: absolute; inset: 0; background: #000; opacity: var(--dim, 0); pointer-events: none; }
+.detail__pic img, .detail__pic video, .detail__pic canvas { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 .detail__slide.is-frames.is-front img { pointer-events: auto; cursor: ew-resize; touch-action: none; }
-.detail__slide--poster { background: #0b0b0c; }
 .detail__scrub {
-  position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 12px;
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; display: flex; align-items: center; gap: 12px;
   padding: 18px 14px 10px; background: linear-gradient(transparent, rgba(0, 0, 0, .78));
 }
 .detail__slide:not(.is-front) .detail__scrub { visibility: hidden; }
@@ -395,9 +398,8 @@ a, button, label, html.over-screen #gl { cursor: var(--cur-link); }
   font-size: 18px; font-weight: 900; color: #eef0f0; background: rgba(0, 0, 0, .5); border: 1px solid rgba(255, 255, 255, .25);
 }
 .detail__arrow:hover { background: #fff; color: #000; }
-.detail__arrow--prev { left: 0; }
-.detail__arrow--next { right: 0; }
-.detail__arrow:disabled, .detail__gallery.is-single .detail__arrow { opacity: 0; pointer-events: none; }
+.detail__arrow--prev { left: var(--gutter); }
+.detail__arrow--next { right: var(--gutter); }
 .detail__cap { margin: 8px auto 0; max-width: 72ch; min-height: 1.45em; text-align: center; font-size: var(--fs-xs); line-height: 1.45; color: rgba(238, 240, 240, .55); }
 .detail__cap[hidden] { display: block; visibility: hidden; }
 
@@ -417,6 +419,7 @@ a, button, label, html.over-screen #gl { cursor: var(--cur-link); }
 .detail__more:hover { background: var(--accent); color: #000; text-decoration: none; }
 .detail__links { display: grid; gap: 4px; margin-top: 10px; font-size: var(--fs-xs); }
 .detail__links a { text-decoration: underline; text-underline-offset: 3px; }
+.detail__thumbs[hidden] { display: none; }
 .detail__thumbs { display: flex; gap: 8px; align-self: center; max-width: 34vw; overflow-x: auto; padding: 3px; }
 .detail__thumb { position: relative; flex: 0 0 auto; width: 76px; aspect-ratio: 16 / 9; padding: 0; background: #000; border: 1px solid rgba(255, 255, 255, .22); opacity: .5; transition: opacity .2s, border-color .2s; }
 .detail__thumb img, .detail__thumb canvas { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -491,7 +494,7 @@ html.edit-dirty .editbar [data-edit="save"] { color: var(--accent); }
   .detail { padding: 0 12px calc(10px + env(safe-area-inset-bottom)); }
   .detail__top { padding-top: 58px; }
   .detail__view { grid-template-rows: auto auto minmax(0, 1fr); }
-  .detail__gallery { height: calc((100vw - 24px) * .84 * 9 / 16 + 28px); }
+  .detail__gallery { height: calc(100vw * .78 * 9 / 16 + 24px); margin: 0 -12px; }
   .detail__bar { grid-template-columns: minmax(0, 1fr); gap: 14px; min-height: 0; overflow: auto; overscroll-behavior: contain; padding-top: 10px; }
   .detail__thumbs { order: -1; max-width: none; }
   .detail__arrow { display: none; }

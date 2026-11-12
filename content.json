@@ -69,6 +69,32 @@
         "Guitar"
       ],
       "links": [],
+      "media": [
+        {
+          "type": "image",
+          "src": "assets/work/music/logic-attack-on-titan.jpg",
+          "alt": "Logic Pro arrange window for an orchestral Attack on Titan arrangement: cello, violas, French horns, trumpets, trombone, church choir, bells and drums.",
+          "caption": "Attack on Titan, an orchestral arrangement in Logic Pro: strings, brass, choir and percussion."
+        },
+        {
+          "type": "image",
+          "src": "assets/work/music/logic-dear-elena.jpg",
+          "alt": "Logic Pro arrange window for the song Dear Elena: strummed and finger-picked guitars, a bluesy lead, string parts and a warm synth pad.",
+          "caption": "Dear Elena (2023): strummed and finger-picked guitars over strings and a synth pad."
+        },
+        {
+          "type": "image",
+          "src": "assets/work/music/logic-fourthousand-miles.jpg",
+          "alt": "Logic Pro window for the song Fourthousand Miles: a finger-picked guitar take with two Romance Strings parts, and the guitar waveform open in the editor below.",
+          "caption": "Fourthousand Miles: finger-picked guitar with flex-timed takes and two string lines."
+        },
+        {
+          "type": "image",
+          "src": "assets/work/music/logic-slow-dancing.jpg",
+          "alt": "Logic Pro arrange window for the song Slow Dancing to a Waltz, with verse and chorus markers, vocal takes, guitars, piano, drums and an orchestra folder.",
+          "caption": "Slow Dancing to a Waltz: a 3/4 song with vocals, guitars, piano, drums and an orchestra stack."
+        }
+      ],
       "poster": "studio",
       "schemaType": "CreativeWork"
     },

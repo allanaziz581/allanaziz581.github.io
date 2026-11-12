@@ -224,6 +224,31 @@ export function createWork({ lowPower = false, projects = [] } = {}) {
       }
       return { l: Math.min(...xs), r: Math.max(...xs), t: Math.min(...ys), b: Math.max(...ys) };
     },
+    // the outline (CSS px, after the barrel, front and back of the bezel) of the screen d steps from the
+    // front one, everything at rest: main.js keeps the list and the info panel clear of the neighbours
+    restOutline(d) {
+      const cam = camera.clone();
+      cam.setViewOffset(vw, vh, offX, offY, vw, vh);
+      cam.position.set(0, 0, baseZ); cam.lookAt(0, 0, 0); cam.updateMatrixWorld();
+      const ad = Math.abs(d);
+      const m = new THREE.Matrix4().compose(
+        new THREE.Vector3(d * 5.8, -d * 4.1, -ad * 1.6),
+        new THREE.Quaternion().setFromEuler(new THREE.Euler(d * 0.32, -d * 0.5, -d * 0.12)),
+        new THREE.Vector3(1, 1, 1));
+      const pts = [], v = new THREE.Vector3();
+      for (const z of [0.08, -1.08]) {
+        for (let i = 0; i <= 32; i++) {
+          const u = -W / 2 + (W * i) / 32, w = -H / 2 + (H * i) / 32;
+          for (const [x, y] of [[u, -H / 2], [u, H / 2], [-W / 2, w], [W / 2, w]]) {
+            v.set(x, y, z).applyMatrix4(m).project(cam);
+            if (v.z > 1) continue;
+            const [ox, oy] = toShown(v.x, v.y);
+            pts.push([(ox + 1) / 2 * vw, (1 - oy) / 2 * vh]);
+          }
+        }
+      }
+      return pts;
+    },
     setPointer(nx, ny) { mouse.set(nx, ny); },
     drawAll(t = 0) { screens.forEach((s) => redraw(s, t)); },
     // is the pointer (NDC) over screen i?

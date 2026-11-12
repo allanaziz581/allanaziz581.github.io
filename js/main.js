@@ -170,6 +170,7 @@ async function boot() {
     const l = (p.links || [])[0];
     if (l) { infoLinkRow.hidden = false; infoLink.href = l.href; infoLink.textContent = l.label; }
     else infoLinkRow.hidden = true;
+    placeSide();
   }
 
   // the heading starts at the CSS size (Tesla's) and steps down only until its longest word fits and it
@@ -190,10 +191,37 @@ async function boot() {
   // inside that free area (work.setArea). Re-run on resize and when content changes.
   const workIndex = $('.work__index');
   const fitH = (a) => Math.max(0, Math.min((a.r - a.l) / SCREEN_ASPECT, a.b - a.t)); // screen height that fits
+  // Side by side, the list and the info panel also keep GAP clear of the screens either side of the
+  // front one (the previous sits up left, the next down right): each stays centred unless that would
+  // bring it closer, then the info moves up and the list down, never into the name/menu row.
+  // Stacked has its bands (css) instead.
+  const GAP = 28;
+  let clear = null; // { h, head, foot, next, prev }: the side layout's limits, null while stacked
+  const edgeIn = (pts, el, pick) => {
+    const r = el.getBoundingClientRect(), ys = pts.filter(([x]) => x >= r.left - GAP && x <= r.right + GAP).map(([, y]) => y);
+    return ys.length ? pick(...ys) : null;
+  };
+  function placeSide() {
+    if (!clear) {
+      workIndex.style.top = info.style.top = workIndex.style.transform = info.style.transform = '';
+      return;
+    }
+    const { h, head, foot, next, prev } = clear;
+    const ih = info.offsetHeight, lh = workIndex.offsetHeight;
+    let it = (h - ih) / 2;
+    if (next !== null) it = Math.min(it, next - GAP - ih);
+    let lt = (h - lh) / 2;
+    if (prev !== null) lt = Math.max(lt, prev + GAP);
+    lt = Math.min(lt, h - foot - lh);
+    info.style.top = `${Math.round(Math.max(head + 8, it))}px`;
+    workIndex.style.top = `${Math.round(Math.max(head + 8, lt))}px`;
+    info.style.transform = workIndex.style.transform = 'none';
+  }
   function frameWork() {
     const w = innerWidth, h = ov.work.clientHeight || innerHeight;
     const air = clamp(w * 0.025, 14, 36);
     const head = 62, foot = 40; // the name/menu row and the bottom row
+    clear = null; placeSide(); info.style.width = '';
     ov.work.classList.remove('is-stacked');
     const li = workIndex.getBoundingClientRect(), inf = info.getBoundingClientRect();
     const side = { l: li.right + air, r: inf.left - air, t: head, b: h - foot };
@@ -208,15 +236,40 @@ async function boot() {
     ov.work.classList.toggle('is-stacked', useStacked);
     ov.work.style.setProperty('--band-top', `${Math.round(li2.bottom)}px`);
     ov.work.style.setProperty('--band-bottom', `${Math.round(h - (infBottom - tallest))}px`);
+    info.classList.remove('is-crowded');
+    if (useStacked) {
+      fillInfo(Math.max(0, active));
+      work.setArea(stacked, LOOK.work.barrel);
+      return;
+    }
+    // side by side: the tallest project's info has to fit between the name/menu row and GAP above the
+    // next screen. On a short window it may not: widen the info column a step at a time (fewer lines),
+    // which narrows the front screen, by no more than a fifth. Still too tall: a soft backing (css).
+    const tallestSide = () => { let t = 0; PROJECTS.forEach((_, i) => { fillInfo(i); t = Math.max(t, info.offsetHeight); }); return t; };
+    const base = info.offsetWidth, h0 = fitH(side);
+    let area = side, next = null, room = Infinity;
+    for (let wi = base; ; wi += 24) {
+      info.style.width = wi === base ? '' : `${wi}px`;
+      area = { ...side, r: side.r - (wi - base) };
+      work.setArea(area, LOOK.work.barrel);
+      next = edgeIn(work.restOutline(1), info, Math.min);
+      room = next === null ? Infinity : next - (head + 8) - tallestSide(); // what's left between them
+      if (room >= GAP || wi + 24 > 420 || fitH({ ...area, r: area.r - 24 }) < 0.8 * h0) break;
+    }
+    info.classList.toggle('is-crowded', room < 6); // only when the text would actually reach the bezel
+    // the next screen's top edge above the info column, the previous one's bottom edge beside the list
+    clear = { h, head, foot, next, prev: edgeIn(work.restOutline(-1), workIndex, Math.max) };
     fillInfo(Math.max(0, active));
-    work.setArea(useStacked ? stacked : side, LOOK.work.barrel);
   }
   let frameReq = 0;
   queueFrameWork = () => { if (!frameReq) frameReq = requestAnimationFrame(() => { frameReq = 0; frameWork(); }); };
   frameWork();
   // the heading font arrives after the first layout: fit the side heading and frame the screen again
   document.fonts?.ready.then(() => { fitTitle(); queueFrameWork(); });
-  if (/[?&]layout\b/.test(location.search)) window.__workScreenRect = () => work.screenRect(); // layout checks only
+  if (/[?&]layout\b/.test(location.search)) { // layout checks only
+    window.__workScreenRect = () => work.screenRect();
+    window.__workRest = (d) => work.restOutline(d);
+  }
 
   // --main / --pop (and --accent) follow the project in front, back to streetlight orange outside the work room.
   // --hi is the one that reads on the dark project page: the pop colour, or the main one when the pop is

@@ -104,7 +104,7 @@ function tesla(ctx, w, h, t) {
   });
   // HMI tiles
   const hx = w - 290;
-  [['INTERLOCK', 'OK', '#39ff7e'], ['FAIL-SAFE', 'ARMED', '#39ff7e'], ['AI EVALS', 'PASS', '#39ff7e'], ['MODE', 'AUTO', '#f4f4f4']].forEach(([k, v, c], i) => {
+  [['INTERLOCK', 'OK', '#39ff7e'], ['FAIL-SAFE', 'ARMED', '#39ff7e'], ['NETWORK', 'ONLINE', '#39ff7e'], ['MODE', 'AUTO', '#f4f4f4']].forEach(([k, v, c], i) => {
     const y = 270 + i * 82;
     ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1; ctx.strokeRect(hx + 0.5, y + 0.5, 230, 66);
     label(ctx, k, hx + 14, y + 24, 13, 'rgba(255,255,255,.55)', MONO, 600);

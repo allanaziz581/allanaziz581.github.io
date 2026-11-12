@@ -15,7 +15,7 @@
         "ai tooling",
         "root cause"
       ],
-      "summary": "A summer as a controls engineering intern at Giga Texas. I worked on PLC and HMI software for production equipment and on a local AI and knowledge toolkit that helps find faults faster. On the line, my electrical root-cause work started from the drawings.",
+      "summary": "A summer as a controls engineering intern at Giga Texas. I worked on PLC and HMI software for production equipment and on a local AI and knowledge toolkit for controls work. On the line, my electrical root-cause work started from the drawings.",
       "highlights": [
         {
           "group": "Software and controls",
@@ -44,8 +44,8 @@
         },
         {
           "group": "AI systems and knowledge tooling",
-          "title": "Local model with human review",
-          "text": "I set up a local inference workflow over a private controls corpus, for SCL and HMI authoring, fault classification and procedure routing. Nothing the model produced reached a PLC or a safety change without a person reviewing it first."
+          "title": "A local model",
+          "text": "I set up a local inference workflow over a private controls corpus, for SCL and HMI authoring and procedure routing."
         },
         {
           "group": "AI systems and knowledge tooling",
@@ -56,21 +56,6 @@
           "group": "AI systems and knowledge tooling",
           "title": "Skills written as contracts",
           "text": "I wrote the agent skills as versioned Markdown contracts. Each one listed its preconditions, inputs, steps, acceptance checks and failure modes. They covered tracing a schematic, proving out a watch table, auditing HMI tag paths and filing a post-incident report."
-        },
-        {
-          "group": "AI systems and knowledge tooling",
-          "title": "Tuned on real debug traces",
-          "text": "I ran my own tuning loop on labeled debug traces: software faults versus power or network faults, unscanned call trees, credential parse errors. I adjusted the chunking, link density and skill wording until retrieval came back with the actual fix path."
-        },
-        {
-          "group": "AI systems and knowledge tooling",
-          "title": "Used on live incidents",
-          "text": "On production incidents, the graph and skills pointed to the next step, from the schematic net to the diagnostics, the tag and the call tree. That cut the time to isolate repeat pendant recovery faults, intermittent dropouts and badge API faults."
-        },
-        {
-          "group": "AI systems and knowledge tooling",
-          "title": "Data stays local",
-          "text": "No plant data went into outside training. The model and skills were only used for authoring, navigation and running runbooks."
         },
         {
           "group": "Electrical, schematics and root cause",

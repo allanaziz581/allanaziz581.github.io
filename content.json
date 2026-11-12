@@ -73,6 +73,129 @@
       "schemaType": "CreativeWork"
     },
     {
+      "key": "4d-mapping",
+      "category": "ai",
+      "title": "4D Mapping",
+      "subtitle": "Object detection and AI optimization",
+      "when": "2026",
+      "where": "Personal project",
+      "desc": "A computer-vision workbench I built: put in an ordinary 2D video and it finds the objects, tracks them and rebuilds the scene in 4D, which is x, y and z plus time.",
+      "summary": "A plain 2D video goes in. Object detection finds the subject in every frame, depth models and camera solving lift each frame into 3D, and the frames are joined into one scene you can orbit and scrub through time. Earlier positions stay in the scene as ghosts, so a deer's whole path through the woods shows at once. The demo below comes out of my own pipeline from a single clip, with no 3D scanner and no extra cameras.",
+      "highlights": [
+        "4D reconstruction from one ordinary video: the camera path solved, the subject tracked frame by frame, and the scene placed in x, y, z and time.",
+        "Object detection measured on a 1,000-image hold-out: RF-DETR large finds people at 0.878 AP@0.50 in 35 ms a frame on an M5 Max, against 0.489 for the small on-device model.",
+        "Open-vocabulary detection and segmentation (Grounding DINO and SAM) for subjects the stock detectors miss, such as a deer.",
+        "Gaussian splats and per-frame 3D Gaussians for the photoreal version of the scene, trained on the real frames and scored on held-out frames.",
+        "Fully automatic: drop a clip in a folder and the pipeline runs end to end and writes its own report, with no one in the loop.",
+        "Native desktop app in Rust on wgpu with a 4D timeline, orbit, top-down and follow cameras, and manual correction of detections."
+      ],
+      "tools": [
+        "Python",
+        "PyTorch (Apple MPS)",
+        "RF-DETR",
+        "Grounding DINO",
+        "SAM",
+        "Depth Anything 3",
+        "COLMAP",
+        "Gaussian splatting",
+        "Rust",
+        "wgpu",
+        "Core ML"
+      ],
+      "role": [
+        "computer vision",
+        "ai",
+        "software"
+      ],
+      "links": [],
+      "media": [
+        {
+          "type": "frames",
+          "src": "assets/work/fourd/scrub/f00.jpg",
+          "poster": "assets/work/fourd/scrub/f09.jpg",
+          "alt": "Drag through time: the first frame is the 2D clip of a deer in a forest, the later ones are the same scene rebuilt in 3D, with the deer's earlier positions left behind as pale ghosts.",
+          "caption": "Drag through time (x, y, z + t). Source clip: youtube.com/watch?v=Puw5vu22Kqk, used for a non-commercial demo.",
+          "frames": [
+            {
+              "src": "assets/work/fourd/scrub/f00.jpg",
+              "label": "2D video in"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f01.jpg",
+              "label": "4D scene, t = 1.2 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f02.jpg",
+              "label": "4D scene, t = 2.6 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f03.jpg",
+              "label": "4D scene, t = 4.0 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f04.jpg",
+              "label": "4D scene, t = 5.4 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f05.jpg",
+              "label": "4D scene, t = 6.8 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f06.jpg",
+              "label": "4D scene, t = 8.2 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f07.jpg",
+              "label": "4D scene, t = 9.6 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f08.jpg",
+              "label": "4D scene, t = 11.0 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f09.jpg",
+              "label": "4D scene, t = 12.4 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f10.jpg",
+              "label": "4D scene, t = 13.8 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f11.jpg",
+              "label": "4D scene, t = 15.2 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f12.jpg",
+              "label": "4D scene, t = 16.6 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f13.jpg",
+              "label": "4D scene, t = 18.0 s"
+            },
+            {
+              "src": "assets/work/fourd/scrub/f14.jpg",
+              "label": "4D scene, t = 19.4 s"
+            }
+          ]
+        },
+        {
+          "type": "video",
+          "src": "assets/work/fourd/deer-4d.mp4",
+          "poster": "assets/work/fourd/deer-4d.jpg",
+          "alt": "A 2D clip of a deer in a forest fades into the same scene rebuilt in 3D, with the deer's earlier positions left behind as pale ghosts along its path.",
+          "caption": "2D video in, 4D scene out. Source clip: youtube.com/watch?v=Puw5vu22Kqk, used for a non-commercial demo."
+        },
+        {
+          "type": "image",
+          "src": "assets/work/fourd/dashboard.jpg",
+          "alt": "The 4D timeline in the desktop app: view modes, camera modes, the reconstructed forest and a time scrubber at frame 77 of 203.",
+          "caption": "The 4D timeline in my desktop app: 4 million environment points, camera modes and a time scrubber."
+        }
+      ],
+      "poster": "fourd",
+      "schemaType": "CreativeWork"
+    },
+    {
       "key": "headset",
       "category": "headset",
       "title": "Wearable headset",

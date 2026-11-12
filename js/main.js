@@ -204,6 +204,8 @@ async function boot() {
   let frameReq = 0;
   queueFrameWork = () => { if (!frameReq) frameReq = requestAnimationFrame(() => { frameReq = 0; frameWork(); }); };
   frameWork();
+  // the heading font arrives after the first layout: fit the side heading and frame the screen again
+  document.fonts?.ready.then(() => { fitTitle(); queueFrameWork(); });
   if (/[?&]layout\b/.test(location.search)) window.__workScreenRect = () => work.screenRect(); // layout checks only
 
   // --main / --pop (and --accent) follow the project in front, back to streetlight orange outside the work room

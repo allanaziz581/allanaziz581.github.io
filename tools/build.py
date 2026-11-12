@@ -26,6 +26,7 @@ RESERVED = {"content", "work", "about", "contact", "home", "studio", "menu", "gl
             "work-h", "about-h", "contact-h", "edit"}
 TEXT_FIELDS = ("category", "title", "subtitle", "when", "where", "desc", "summary", "poster", "schemaType")
 LIST_FIELDS = ("role", "highlights", "tools")
+MEDIA_RE = re.compile(r"^assets/[A-Za-z0-9_./-]+\.(jpg|jpeg|png|webp|mp4|webm)$")
 SCHEMA_TYPES = {"CreativeWork", "SoftwareSourceCode", "VideoGame", "OrganizationRole", "MusicComposition", "Product"}
 
 
@@ -79,6 +80,35 @@ def validate(data):
             if not re.match(r"^(https://|mailto:)", href):
                 raise ContentError(f"{key}: link '{href}' must start with https:// or mailto:")
             q["links"].append({"label": label, "href": href})
+        media = p.get("media", [])
+        if not isinstance(media, list):
+            raise ContentError(f"{key}: media must be a list")
+        q["media"] = []
+        for m in media:
+            if not isinstance(m, dict):
+                raise ContentError(f"{key}: each media item needs type, src and alt")
+            item = {"type": str(m.get("type", "image")).strip(), "src": str(m.get("src", "")).strip(), "alt": str(m.get("alt", "")).strip()}
+            if item["type"] not in ("image", "video", "frames"):
+                raise ContentError(f"{key}: media type must be image, video or frames")
+            if item["type"] == "frames":
+                fr = m.get("frames", [])
+                if not isinstance(fr, list) or len(fr) < 2 or not all(isinstance(x, dict) for x in fr):
+                    raise ContentError(f"{key}: a frames item needs a list of at least two {{src, label}}")
+                item["frames"] = [{"src": str(x.get("src", "")).strip(), "label": str(x.get("label", "")).strip()} for x in fr]
+            for f in ("poster", "caption"):
+                v = str(m.get(f, "")).strip()
+                if v:
+                    item[f] = v
+            for v in [item["src"], item.get("poster")] + [x["src"] for x in item.get("frames", [])]:
+                if v is None:
+                    continue
+                if not MEDIA_RE.match(v) or ".." in v:
+                    raise ContentError(f"{key}: media file '{v}' must be a path under assets/")
+                if not os.path.isfile(os.path.join(ROOT, v)):
+                    raise ContentError(f"{key}: media file '{v}' does not exist")
+            if not item["alt"]:
+                raise ContentError(f"{key}: media '{item['src']}' needs alt text")
+            q["media"].append(item)
         if q["schemaType"] and q["schemaType"] not in SCHEMA_TYPES:
             raise ContentError(f"{key}: schemaType must be one of {sorted(SCHEMA_TYPES)}")
         clean.append(q)

@@ -54,12 +54,99 @@ export function createDetail({ content, posterKeys, edit, onOpen, onClose, onGo,
   const summary = $('.detail__summary', el), list = $('.detail__list', el), tools = $('.detail__tools', el);
   const role = $('.detail__role', el), links = $('.detail__links', el);
   const hlBlock = $('[data-block="highlights"]', el), toolBlock = $('[data-block="tools"]', el), roleBlock = $('[data-block="role"]', el);
-  let cur = -1, open = false, lastFocus = null, dirty = false, hideTimer = 0;
+  const mediaBlock = $('[data-block="media"]', el), stage = $('.detail__stage', el), cap = $('.detail__cap', el), thumbs = $('.detail__thumbs', el);
+  const scrub = $('.detail__scrub', el), range = $('.detail__range', el), frameLabel = $('.detail__frame-label', el);
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let cur = -1, open = false, lastFocus = null, dirty = false, hideTimer = 0, frames = null, frameImg = null;
 
   const pad = (i) => String(i + 1).padStart(2, '0');
 
+  // ---------- pictures: a big slide, a time slider for a frame sequence, thumbnails ----------
+  function stopMedia() { stage.querySelectorAll('video').forEach((v) => v.pause()); }
+
+  function setFrame(k) {
+    if (!frames) return;
+    k = Math.max(0, Math.min(frames.length - 1, k | 0));
+    range.value = String(k);
+    frameImg.src = frames[k].src;
+    frameLabel.textContent = frames[k].label || `${k + 1} / ${frames.length}`;
+    range.setAttribute('aria-valuetext', frameLabel.textContent);
+  }
+
+  function showSlide(items, k) {
+    stopMedia();
+    const m = items[k];
+    frames = null;
+    stage.classList.toggle('is-frames', m.type === 'frames');
+    if (m.type === 'video') {
+      const v = document.createElement('video');
+      v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'metadata';
+      v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+      if (m.poster) v.poster = m.poster;
+      v.setAttribute('aria-label', m.alt);
+      if (reduceMotion) v.controls = true; else v.autoplay = true;
+      v.src = m.src;
+      stage.replaceChildren(v);
+    } else {
+      frameImg = Object.assign(document.createElement('img'), { alt: m.alt, decoding: 'async', draggable: false });
+      stage.replaceChildren(frameImg);
+      if (m.type === 'frames') {
+        frames = m.frames;
+        frames.forEach((f) => { new Image().src = f.src; }); // warm the cache so dragging never waits
+        range.max = String(frames.length - 1);
+        setFrame(0);
+      } else {
+        frameImg.src = m.src;
+      }
+    }
+    scrub.hidden = m.type !== 'frames';
+    cap.textContent = m.caption || '';
+    cap.hidden = !m.caption;
+    [...thumbs.children].forEach((b, j) => b.setAttribute('aria-selected', String(j === k)));
+  }
+
+  function fillMedia(p) {
+    const items = p.media || [];
+    mediaBlock.hidden = !items.length;
+    stopMedia();
+    stage.replaceChildren();
+    frames = null;
+    thumbs.replaceChildren(...items.map((m, j) => {
+      const b = Object.assign(document.createElement('button'), { type: 'button', className: 'detail__thumb' });
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-label', `${j + 1} of ${items.length}: ${m.alt}`);
+      b.append(Object.assign(document.createElement('img'), { src: m.poster || m.src, alt: '', loading: 'lazy', decoding: 'async' }));
+      const tag = m.type === 'frames' ? 'drag' : m.type === 'video' ? 'video' : '';
+      if (tag) b.append(Object.assign(document.createElement('span'), { className: 'detail__thumb-tag', textContent: tag }));
+      b.addEventListener('click', () => showSlide(items, j));
+      return b;
+    }));
+    thumbs.hidden = items.length < 2;
+    if (items.length) showSlide(items, 0);
+  }
+
+  range.addEventListener('input', () => setFrame(+range.value));
+  // dragging across the picture scrubs the frames too (mouse or finger; vertical swipes still scroll)
+  let dragX = null;
+  stage.addEventListener('pointerdown', (e) => {
+    if (!frames) return;
+    dragX = e.clientX;
+    stage.setPointerCapture(e.pointerId);
+    const r = stage.getBoundingClientRect();
+    setFrame(Math.round(((e.clientX - r.left) / r.width) * (frames.length - 1)));
+  });
+  stage.addEventListener('pointermove', (e) => {
+    if (!frames || dragX === null) return;
+    const r = stage.getBoundingClientRect();
+    setFrame(Math.round(((e.clientX - r.left) / r.width) * (frames.length - 1)));
+  });
+  const endDrag = () => { dragX = null; };
+  stage.addEventListener('pointerup', endDrag);
+  stage.addEventListener('pointercancel', endDrag);
+
   function fillView(i) {
     const p = P[i];
+    fillMedia(p);
     title.textContent = p.title;
     sub.textContent = p.subtitle || '';
     sub.hidden = !p.subtitle;
@@ -170,6 +257,7 @@ export function createDetail({ content, posterKeys, edit, onOpen, onClose, onGo,
   function close() {
     if (!open) return;
     open = false;
+    stopMedia();
     el.classList.remove('is-open');
     root.classList.remove('detail-open');
     hideTimer = setTimeout(() => { el.hidden = true; }, 350);

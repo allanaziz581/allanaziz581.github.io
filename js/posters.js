@@ -2,7 +2,7 @@
 // unknown keys get a plain title card. Each draw(ctx, w, h, t) is animated while its screen is in front.
 
 const SANS = '"Helvetica Neue", Helvetica, Arial, sans-serif';
-const PIX = '"Silkscreen", "Pixelify Sans", "Doto", monospace'; // Silkscreen holds only Z, L and C (see css --font-pix)
+const PIX = '"Silkscreen", "Pixelify Sans", "Doto", monospace'; // Silkscreen holds only Z, L and C (index.html)
 const DOT = '"Doto", ui-monospace, monospace';
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
@@ -345,6 +345,57 @@ function headset(ctx, w, h, t) {
   label(ctx, 'REPLAY', x1, top - 18, 15, 'rgba(225,240,255,.85)', MONO, 700, 'right');
 }
 
+// 4D mapping: the rebuilt forest plays on the screen (same-origin video, so the canvas stays clean for WebGL),
+// with the four axes spelled out; the still stands in until the video can play, and under reduced motion
+const fdStill = typeof Image === 'undefined' ? null : Object.assign(new Image(), { src: 'assets/work/fourd/deer-4d-screen.jpg' });
+let fdVideo = null, fdIdle = 0;
+function fdVid() {
+  if (fdVideo || typeof document === 'undefined') return fdVideo;
+  fdVideo = document.createElement('video');
+  fdVideo.muted = true; fdVideo.loop = true; fdVideo.playsInline = true; fdVideo.preload = 'auto';
+  fdVideo.setAttribute('muted', ''); fdVideo.setAttribute('playsinline', '');
+  fdVideo.src = 'assets/work/fourd/deer-4d-screen.mp4';
+  return fdVideo;
+}
+function fourd(ctx, w, h, t) {
+  const g = ctx.createLinearGradient(0, 0, w, h);
+  g.addColorStop(0, '#0d0820'); g.addColorStop(1, '#22134d');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  frame(ctx, w, h, 'rgba(210,195,255,.22)');
+  label(ctx, '4D', 50, 196, 176, '#ffffff', SANS, 900);
+  label(ctx, 'MAPPING', 300, 128, 64, '#c9b8ff', SANS, 900);
+  label(ctx, 'X  Y  Z  + TIME', 304, 182, 34, '#ffb000', MONO, 800);
+  label(ctx, 'OBJECT DETECTION  /  TRACKING  /  GAUSSIAN SPLATS', 54, 240, 17, 'rgba(225,215,255,.78)', MONO, 700);
+  label(ctx, '2D VIDEO IN', w - 56, 96, 16, 'rgba(225,215,255,.6)', MONO, 700, 'right');
+  label(ctx, '4D SCENE OUT', w - 56, 122, 16, '#ffb000', MONO, 700, 'right');
+  // viewport with the render
+  const vx = 54, vy = 262, vw = w - 108, vh = h - vy - 52;
+  ctx.fillStyle = '#050308'; ctx.fillRect(vx, vy, vw, vh);
+  const v = t > 0 ? fdVid() : null;
+  if (v) {
+    if (v.paused) v.play().catch(() => {});
+    clearTimeout(fdIdle); fdIdle = setTimeout(() => v.pause(), 600); // stops when this screen leaves the front
+  }
+  const src = v && v.readyState >= 2 ? v : (fdStill && fdStill.complete && fdStill.naturalWidth ? fdStill : null);
+  if (src) {
+    const sw = src.videoWidth || src.naturalWidth, sh = src.videoHeight || src.naturalHeight;
+    const k = Math.max(vw / sw, vh / sh), cw = vw / k, ch = vh / k;
+    ctx.drawImage(src, (sw - cw) / 2, (sh - ch) / 2 + ch * 0.04, cw, ch, vx, vy, vw, vh);
+  }
+  ctx.strokeStyle = 'rgba(210,195,255,.35)'; ctx.lineWidth = 1; ctx.strokeRect(vx + 0.5, vy + 0.5, vw - 1, vh - 1);
+  // axes gizmo, bottom left of the viewport
+  const ox = vx + 52, oy = vy + vh - 30;
+  [[38, 0, '#ff5a5a', 'X'], [0, -38, '#5ce08a', 'Y'], [-24, 18, '#5aa8ff', 'Z']].forEach(([dx, dy, c, n]) => {
+    ctx.strokeStyle = c; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + dx, oy + dy); ctx.stroke();
+    label(ctx, n, ox + dx * 1.3 - 5, oy + dy * 1.3 + 6, 15, c, MONO, 800);
+  });
+  // the time axis: a playhead running along the bottom of the viewport
+  const tp = ((t * 0.08) % 1);
+  ctx.fillStyle = 'rgba(255,176,0,.35)'; ctx.fillRect(vx + 110, vy + vh - 14, vw - 130, 2);
+  ctx.fillStyle = '#ffb000'; ctx.fillRect(vx + 110 + tp * (vw - 130), vy + vh - 22, 3, 18);
+  label(ctx, 'T', vx + 96, vy + vh - 8, 15, '#ffb000', MONO, 800, 'right');
+}
+
 // plain title card for entries without their own artwork
 function generic(p) {
   const words = (p.title || '').toUpperCase().split(/\s+/);
@@ -364,7 +415,7 @@ function generic(p) {
   };
 }
 
-export const POSTERS = { thinkfree, tesla, dsp, pwm, brute, studio, headset };
+export const POSTERS = { thinkfree, tesla, dsp, pwm, brute, studio, headset, fourd };
 export const posterFor = (p) => POSTERS[p.poster] || generic(p);
 
 // Each project's three colours (a main colour, a background shade and a colour that pops),
@@ -374,7 +425,8 @@ export const posterFor = (p) => POSTERS[p.poster] || generic(p);
 export const TINTS = {
   tesla: { main: '#e82127', room: '#ecd3cf', pop: '#161616' },     // logo red, rose, near-black (Tesla's red, black, white)
   studio: { main: '#1d2b7d', room: '#d3ecf6', pop: '#ef2f9c' },    // dark blue, light blue, pink (the notes)
-  headset: { main: '#1856b8', room: '#cfdcf1', pop: '#f26b1d' },   // blue, pale blue, the orange distance line
+  headset: { main: '#1856b8', room: '#cfdcf1', pop: '#f26b1d' },
+  fourd: { main: '#5a2fd0', room: '#e2dcf6', pop: '#ffb000' },     // violet, pale lavender, the amber time axis   // blue, pale blue, the orange distance line
   thinkfree: { main: '#0b5e40', room: '#cfe9dc', pop: '#ff4f5e' }, // deep green, mint, the red candles
   pwm: { main: '#7a4300', room: '#f1e1bf', pop: '#2f6bff' },       // amber-brown, cream, electric blue
   dsp: { main: '#1f6b35', room: '#d5ebd3', pop: '#ff7a1a' },       // forest, pale sage, orange

@@ -45,7 +45,21 @@ I write and produce my own songs, beats and orchestral sketches, and I minor in 
 
 Tools: Logic Pro, Ableton Live, MainStage, GarageBand, Spitfire BBC Symphony Orchestra, Splice, Guitar.
 
-### 03. Wearable headset: Hardware startup project with a small team
+### 03. 4D Mapping: Object detection and AI optimization
+2026, Personal project. Category: ai.
+
+A plain 2D video goes in. Object detection finds the subject in every frame, depth models and camera solving lift each frame into 3D, and the frames are joined into one scene you can orbit and scrub through time. Earlier positions stay in the scene as ghosts, so a deer's whole path through the woods shows at once. The demo below comes out of my own pipeline from a single clip, with no 3D scanner and no extra cameras.
+
+- 4D reconstruction from one ordinary video: the camera path solved, the subject tracked frame by frame, and the scene placed in x, y, z and time.
+- Object detection measured on a 1,000-image hold-out: RF-DETR large finds people at 0.878 AP@0.50 in 35 ms a frame on an M5 Max, against 0.489 for the small on-device model.
+- Open-vocabulary detection and segmentation (Grounding DINO and SAM) for subjects the stock detectors miss, such as a deer.
+- Gaussian splats and per-frame 3D Gaussians for the photoreal version of the scene, trained on the real frames and scored on held-out frames.
+- Fully automatic: drop a clip in a folder and the pipeline runs end to end and writes its own report, with no one in the loop.
+- Native desktop app in Rust on wgpu with a 4D timeline, orbit, top-down and follow cameras, and manual correction of detections.
+
+Tools: Python, PyTorch (Apple MPS), RF-DETR, Grounding DINO, SAM, Depth Anything 3, COLMAP, Gaussian splatting, Rust, wgpu, Core ML.
+
+### 04. Wearable headset: Hardware startup project with a small team
 2026, in development, Texas A&M, College Station. Category: headset.
 
 A wearable I'm building with a small team at Texas A&M: a headset that watches what's coming up behind you and tells you without blocking your ears. It's early, and parts of it stay private until the team is ready, so this is the outline.
@@ -57,7 +71,7 @@ A wearable I'm building with a small team at Texas A&M: a headset that watches w
 
 Tools: KiCad, ESP32-S3, C++, Swift and SwiftUI, Core ML, Python, Computer vision, 3D printing.
 
-### 04. ThinkFree Finance: Founder and software engineer
+### 05. ThinkFree Finance: Founder and software engineer
 April 2025 to February 2026, College Station, Texas. Category: ai.
 
 ThinkFree Finance explains markets for people who don't follow them for a living: renters, hourly workers, small-business owners, students. It reads the news, links it to public records and writes plain-English reports. A language model can state a wrong number as confidently as a right one, so the pipeline checks what it can and labels what it can't.
@@ -71,7 +85,7 @@ ThinkFree Finance explains markets for people who don't follow them for a living
 Tools: Python, FastAPI, FAISS, Sentence embeddings, LLM APIs, JavaScript, SwiftUI, pytest.
 Link: [github / thinkfreefinance](https://github.com/allanaziz581/ThinkFreeFinance)
 
-### 05. hardcaml-pwm: Digital hardware design in OCaml
+### 06. hardcaml-pwm: Digital hardware design in OCaml
 October 2026. Category: engineering.
 
 A small piece of digital hardware written in OCaml with Jane Street's Hardcaml. Turn a rotary encoder and a PWM output follows, sliding to the new duty cycle over a few periods instead of jumping there. Simulated and tested, with the Verilog generated; a learning project that hasn't been run on an FPGA board yet.
@@ -83,7 +97,7 @@ A small piece of digital hardware written in OCaml with Jane Street's Hardcaml. 
 Tools: OCaml, Hardcaml, Verilog, Simulation, Expect tests.
 Link: [github / hardcaml-pwm](https://github.com/allanaziz581/hardcaml-pwm)
 
-### 06. DSP guitar rig: Effects hardware for guitar
+### 07. DSP guitar rig: Effects hardware for guitar
 
 A digital signal-processing effects system for my own guitar. It started on a breadboard and was tested there, and it's the project where the engineering bench and the music meet.
 
@@ -92,7 +106,7 @@ A digital signal-processing effects system for my own guitar. It started on a br
 
 Tools: DSP, Breadboard prototyping, Guitar.
 
-### 07. The Brute VR: Unity VR game, Aggie Coding Club
+### 08. The Brute VR: Unity VR game, Aggie Coding Club
 Fall 2022, Texas A&M, College Station. Category: engineering.
 
 A virtual-reality game built by the Aggie Coding Club. I was one of its main contributors and built the world the player walks through: the maps, the cave level, and the environment, foliage and grass.
